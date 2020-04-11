@@ -1,4 +1,4 @@
-const { Engine, Events, Render, Resolver, World, Body, Bodies, Mouse, MouseConstraint } = Matter
+const { Engine, Events, Render, Resolver, World, Body, Bodies, Mouse, MouseConstraint, Vector } = Matter
 
 const TABLE_LENGTH = 1000;
 const TABLE_WIDTH = 500;
@@ -23,7 +23,7 @@ const render = Render.create({
 
 // mouse stuff
 const mouse = Mouse.create(document.body);
-const mouseConstraint = MouseConstraint.create(engine, { mouse })
+const mouseConstraint = MouseConstraint.create(engine, { mouse });
 World.add(engine.world, mouseConstraint);
 render.mouse = mouse; // keep the mouse in sync with rendering
 
@@ -44,10 +44,9 @@ const cushions = [
   // top + bottom
   Bodies.rectangle(TABLE_LENGTH + CUSHION_BOUNDARY_OFFSET, TABLE_WIDTH / 2, TABLE_WIDTH * 0.87, CUSHION_BOX_WIDTH, { ...cushionProperties, angle: 0.5 * Math.PI }),
   Bodies.rectangle(-CUSHION_BOUNDARY_OFFSET, TABLE_WIDTH / 2, TABLE_WIDTH * 0.87, CUSHION_BOX_WIDTH, { ...cushionProperties, angle: 1.5 * Math.PI }),
-]
-cushions.forEach(b => b.restitution = 0.4)
+];
+cushions.forEach(b => b.restitution = 0.6);
 
-let FORCE_MULTIPLYER = 600
 
 const ballProperties = {
   friction: 0.3,
@@ -65,24 +64,36 @@ const balls = [
   Bodies.circle(495, 305, 15, ballProperties),
   Bodies.circle(500, 310, 15, ballProperties),
   Bodies.circle(500, 300, 15, ballProperties),
-]
+];
 
 
-
-
+let targetIndicator;
 Events.on(mouseConstraint, 'mousedown', function (event) {
   const mousePosition = event.mouse.position;
   console.log('mousedown at ' + mousePosition.x + ' ' + mousePosition.y);
-  // Body.applyForce(balls[0], mousePosition, { x: 8 * FORCE_MULTIPLYER, y: -2 * FORCE_MULTIPLYER })
-  // Body.setAngularVelocity(balls[0], -5)
+  if (targetIndicator) World.remove(engine.world, targetIndicator);
+  targetIndicator = Bodies.circle(mousePosition.x, mousePosition.y, 5, { isSensor: true });
+  World.add(engine.world, targetIndicator);
+});
+
+let FORCE_MULTIPLYER = 100;
+
+window.addEventListener('keydown', (event) => {
+  const desiredForce = +event.key;
+  if (desiredForce < 0) return;
+  if (!targetIndicator) return;
+  const force = desiredForce * desiredForce * FORCE_MULTIPLYER;
+  const direction = Vector.normalise(Vector.sub(targetIndicator.position, balls[0].position));
+  const forceVector = Vector.mult(direction, force);
+  Body.applyForce(balls[0], balls[0].position, forceVector);
 });
 
 Events.on(engine, 'beforeUpdate', () => {
   if (balls[0].angularSpeed >= MAX_BALL_ANGULAR_VELOCITY) {
-    console.log(balls[0].angularVelocity)
-    Body.setAngularVelocity(balls[0], MAX_BALL_ANGULAR_VELOCITY * Math.sign(balls[0].angularVelocity))
+    console.log(balls[0].angularVelocity);
+    Body.setAngularVelocity(balls[0], MAX_BALL_ANGULAR_VELOCITY * Math.sign(balls[0].angularVelocity));
   }
-})
+});
 
 World.add(engine.world, [...balls, ...cushions]);
 
