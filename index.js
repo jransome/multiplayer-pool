@@ -1,25 +1,32 @@
 const path = require('path');
 const express = require('express');
 const socket = require('socket.io');
-const game = require('./lib/game');
 
 const app = express();
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-const server = app.listen(3000, () => console.log('Server running'));
+const server = app.listen(3001, () => console.log('Server running'));
 
 const socketServer = socket(server);
 
-socketServer.sockets.on('connection', (socket) => {
+const players = [];
+
+
+socketServer.sockets.on('connect', (socket) => {
   console.log('new client connected, ID:', socket.id);
+  players.push(socket.id);
+  socket.join('game1')
+  socket.on('gameStateUpdated', (state) => {
+    socketServer.to('game1').emit('gameStateUpdated', state)
+  })
+  socket.on('fireCue', (state) => {
+    socketServer.to('game1').emit('fireCue', state)
+  })
+  socket.on('positionTarget', (state) => {
+    socketServer.to('game1').emit('positionTarget', state)
+  })
+  socket.on('disconnect', () => {
+    console.log('client disconnected, ID:', socket.id);
+  });
 });
-
-
-game.gameEvents.on('gameStateUpdated', (newState) => {
-  socketServer.emit('gameStateUpdated', newState);
-});
-
-setTimeout(game.start, 5000);
-// game.start();
-
