@@ -2,16 +2,30 @@ const socket = io();
 const gameState = {
   balls: [],
   cushions: [],
-  targetPosition: null,
+  targetVector: null,
 }
 
+// temp way of forcing only one host
+let isHost = null;
+let stopGame = null;
+window.addEventListener('keydown', (event) => {
+  if (isHost === null || isHost === true && event.key === 'g') {
+    console.log('hosting game...');
+    hostGame();
+    isHost = true;
+  }
+});
+// temp
+
+// RENDER STUFF
 socket.on('gameStart', (data) => {
+  if (isHost === null) isHost = false; 
   gameState.cushions = data.cushions;
 })
 
 socket.on('gameStateUpdated', (newState) => {
   gameState.balls = newState.balls;
-  gameState.targetPosition = newState.targetPosition
+  gameState.targetVector = newState.targetVector;
 });
 
 const BALL_TYPE_COLOUR_MAP = {
@@ -36,9 +50,13 @@ const drawCushion = (vertices) => {
   endShape(CLOSE);
 }
 
-const drawTargetingLine = (cuePosition, targetPosition) => {
-  strokeWeight(4);
-  line(cuePosition.x, cuePosition.y, targetPosition.x, targetPosition.y);
+const drawTargetingLine = (cuePosition, directionVector) => {
+  strokeWeight(2);
+  const endPoint = {
+    x: cuePosition.x + directionVector.x * 1200,
+    y: cuePosition.y + directionVector.y * 1200,
+  }
+  line(cuePosition.x, cuePosition.y, endPoint.x, endPoint.y);
 }
 
 function setup() {
@@ -47,8 +65,8 @@ function setup() {
 
 function draw() {
   background(30);
-  const { targetPosition, balls, cushions } = gameState;
-  if (targetPosition) drawTargetingLine(balls[0].position, targetPosition);
+  const { targetVector, balls, cushions } = gameState;
+  if (targetVector) drawTargetingLine(balls[0].position, targetVector);
   balls.forEach(b => drawBall(b.position, b.type));
   cushions.forEach(c => drawCushion(c.vertices));
 }
@@ -72,7 +90,7 @@ window.addEventListener('mousemove', ({ toElement, clientX, clientY }) => {
     x: clientX - toElement.offsetLeft,
     y: clientY - toElement.offsetTop,
   }
-  socket.emit('setTarget', canvasPosition);
+  socket.emit('setTargetDirection', canvasPosition);
 });
 
 window.addEventListener('keydown', (event) => {
@@ -81,15 +99,8 @@ window.addEventListener('keydown', (event) => {
   socket.emit('fireCue', desiredForce);
 });
 
-// temp
-window.addEventListener('keydown', (event) => {
-  if (event.key === 'g') {
-    console.log('hosting game...');
-    hostGame();
-  }
-});
-// temp
 
+// ENGINE STUFF
 const { Engine, Events, Render, Resolver, World, Body, Bodies, Mouse, MouseConstraint, Vector } = Matter
 
 const ENGINE_DELTA_TIME_MS = 1000 / 60;
@@ -123,7 +134,7 @@ const cushionProperties = {
 }
 
 const hostGame = () => {
-  let targetIndicator;
+  let targetVector = null;
 
   const engine = Engine.create();
   window.engine = engine; // for debug
@@ -158,22 +169,17 @@ const hostGame = () => {
     Bodies.circle(500, 300, BALL_RADIUS, ballProperties),
   ];
 
-  socket.on('setTarget', (targetPosition) => {
-    if (!targetIndicator) {
-      targetIndicator = Bodies.circle(targetPosition.x, targetPosition.y, 5, { isSensor: true });
-      World.add(engine.world, targetIndicator);
-    }
-    else Body.setPosition(targetIndicator, targetPosition);
+  socket.on('setTargetDirection', (targetPosition) => {
+    targetVector = Vector.normalise(Vector.sub(targetPosition, balls[0].position));
   });
 
   socket.on('fireCue', (desiredForce) => {
-    if (!targetIndicator) return;
+    if (!targetVector) return;
     const force = desiredForce * desiredForce * FORCE_MULTIPLYER;
-    const direction = Vector.normalise(Vector.sub(targetIndicator.position, balls[0].position));
-    const forceVector = Vector.mult(direction, force);
+    const forceVector = Vector.mult(targetVector, force);
     Body.applyForce(balls[0], balls[0].position, forceVector);
-    World.remove(engine.world, targetIndicator);
-    targetIndicator = null;
+    World.remove(engine.world, targetVector);
+    targetVector = null;
   });
 
   Events.on(engine, 'beforeUpdate', () => {
@@ -186,7 +192,7 @@ const hostGame = () => {
   Events.on(engine, 'afterUpdate', () => {
     const gameState = {
       balls: balls.map(b => ({ position: b.position, type: 1 })),
-      targetPosition: targetIndicator ? targetIndicator.position : null,
+      targetVector,
     }
     // console.log(gameState)
     socket.emit('gameStateUpdated', gameState);
@@ -195,6 +201,4 @@ const hostGame = () => {
   World.add(engine.world, [...balls, ...cushions]);
 
   Engine.run(engine);
-
-  return () => Engine.clear(engine);
 }
