@@ -1,19 +1,35 @@
 const socket = io();
-let balls = [];
+const gameState = {
+  balls: [], 
+  cushions: [],
+}
 
-socket.on('gameStateUpdated', (ballData) => {
-  balls = ballData;
+socket.on('gameStart', (data) => {
+  gameState.cushions = data.cushions;
+})
+
+socket.on('gameStateUpdated', ({ balls }) => {
+  gameState.balls = balls;
 });
 
-const typeColourMap = {
+const BALL_TYPE_COLOUR_MAP = {
   0: [255, 255, 255], // cue
   1: [255, 0, 0], // reds
   2: [255, 255, 0], // yellows
 }
 
 const drawBall = (position, type) => {
-  fill(...typeColourMap[type]);
-  circle(position.x, position.y, 30);
+  fill(...BALL_TYPE_COLOUR_MAP[type]);
+  stroke(...BALL_TYPE_COLOUR_MAP[type]);
+  circle(position.x, position.y, BALL_RADIUS * 2);
+}
+
+const drawCushion = (vertices) => {
+  fill(180);
+  stroke(180);
+  beginShape();
+  vertices.forEach(v => vertex(v.x, v.y));
+  endShape(CLOSE);
 }
 
 function setup() {
@@ -22,7 +38,8 @@ function setup() {
 
 function draw() {
   background(30)
-  balls.forEach(b => drawBall(b.position, b.type))
+  gameState.balls.forEach(b => drawBall(b.position, b.type))
+  gameState.cushions.forEach(c => drawCushion(c.vertices))
 }
 
 window.addEventListener('mousedown', ({ toElement, clientX, clientY }) => {
@@ -60,7 +77,9 @@ const TABLE_WIDTH = 500;
 const CUSHION_WIDTH = 20;
 const CUSHION_BOX_WIDTH = 50; // for correct chamfering
 const CUSHION_BOUNDARY_OFFSET = (CUSHION_BOX_WIDTH / 2) - CUSHION_WIDTH;
+const CUSHION_CORNER_RADIUS = 30;
 
+const BALL_RADIUS = 15;
 const MAX_BALL_ANGULAR_VELOCITY = 0.3;
 const FORCE_MULTIPLYER = 100;
 
@@ -77,13 +96,14 @@ const ballProperties = {
 const cushionProperties = {
   isStatic: true,
   friction: 0.8,
-  chamfer: { radius: [0, 0, 30, 30] },
+  chamfer: { radius: [0, 0, CUSHION_CORNER_RADIUS, CUSHION_CORNER_RADIUS] },
 }
 
 const hostGame = () => {
   let targetIndicator;
 
   const engine = Engine.create();
+  window.engine = engine; // for debug
   engine.world.gravity = { x: 0, y: 0 };
 
   // mouse dragging stuff for host only
@@ -102,12 +122,17 @@ const hostGame = () => {
     Bodies.rectangle(-CUSHION_BOUNDARY_OFFSET, TABLE_WIDTH / 2, TABLE_WIDTH * 0.87, CUSHION_BOX_WIDTH, { ...cushionProperties, angle: 1.5 * Math.PI }),
   ];
   cushions.forEach(b => b.restitution = 0.6);
+  socket.emit('gameStart', {
+    cushions: cushions.map(c => ({
+      vertices: c.vertices.map(({ x, y }) => ({ x, y })),
+    }))
+  })
 
   const balls = [
-    Bodies.circle(200, 400, 15, ballProperties), // cue
-    Bodies.circle(495, 305, 15, ballProperties),
-    Bodies.circle(500, 310, 15, ballProperties),
-    Bodies.circle(500, 300, 15, ballProperties),
+    Bodies.circle(200, 400, BALL_RADIUS, ballProperties), // cue
+    Bodies.circle(495, 305, BALL_RADIUS, ballProperties),
+    Bodies.circle(500, 310, BALL_RADIUS, ballProperties),
+    Bodies.circle(500, 300, BALL_RADIUS, ballProperties),
   ];
 
   socket.on('positionTarget', (targetPosition) => {
@@ -132,7 +157,11 @@ const hostGame = () => {
   });
 
   Events.on(engine, 'afterUpdate', () => {
-    const gameState = engine.world.bodies.map(b => ({ position: b.position, type: 1 }));
+    const gameState = {
+      balls: balls.map(b => ({ position: b.position, type: 1 })),
+      targetIndicator: { position: targetIndicator ? targetIndicator.position : null },
+    }
+    // console.log(gameState)
     socket.emit('gameStateUpdated', gameState);
   });
 

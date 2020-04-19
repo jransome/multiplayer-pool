@@ -16,7 +16,11 @@ const players = [];
 socketServer.sockets.on('connect', (socket) => {
   console.log('new client connected, ID:', socket.id);
   players.push(socket.id);
-  socket.join('game1')
+  socket.join('game1');
+
+  socket.on('gameStart', (state) => {
+    socketServer.to('game1').emit('gameStart', state)
+  })
   socket.on('gameStateUpdated', (state) => {
     socketServer.to('game1').emit('gameStateUpdated', state)
   })
@@ -26,6 +30,7 @@ socketServer.sockets.on('connect', (socket) => {
   socket.on('positionTarget', (state) => {
     socketServer.to('game1').emit('positionTarget', state)
   })
+
   socket.on('disconnect', () => {
     console.log('client disconnected, ID:', socket.id);
   });
