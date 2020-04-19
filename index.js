@@ -27,8 +27,8 @@ socketServer.sockets.on('connect', (socket) => {
   socket.on('fireCue', (state) => {
     socketServer.to('game1').emit('fireCue', state)
   })
-  socket.on('positionTarget', (state) => {
-    socketServer.to('game1').emit('positionTarget', state)
+  socket.on('setTarget', (state) => {
+    socketServer.to('game1').emit('setTarget', state)
   })
 
   socket.on('disconnect', () => {

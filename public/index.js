@@ -1,15 +1,17 @@
 const socket = io();
 const gameState = {
-  balls: [], 
+  balls: [],
   cushions: [],
+  targetPosition: null,
 }
 
 socket.on('gameStart', (data) => {
   gameState.cushions = data.cushions;
 })
 
-socket.on('gameStateUpdated', ({ balls }) => {
-  gameState.balls = balls;
+socket.on('gameStateUpdated', (newState) => {
+  gameState.balls = newState.balls;
+  gameState.targetPosition = newState.targetPosition
 });
 
 const BALL_TYPE_COLOUR_MAP = {
@@ -21,15 +23,22 @@ const BALL_TYPE_COLOUR_MAP = {
 const drawBall = (position, type) => {
   fill(...BALL_TYPE_COLOUR_MAP[type]);
   stroke(...BALL_TYPE_COLOUR_MAP[type]);
+  strokeWeight(1);
   circle(position.x, position.y, BALL_RADIUS * 2);
 }
 
 const drawCushion = (vertices) => {
   fill(180);
   stroke(180);
+  strokeWeight(1);
   beginShape();
   vertices.forEach(v => vertex(v.x, v.y));
   endShape(CLOSE);
+}
+
+const drawTargetingLine = (cuePosition, targetPosition) => {
+  strokeWeight(4);
+  line(cuePosition.x, cuePosition.y, targetPosition.x, targetPosition.y);
 }
 
 function setup() {
@@ -37,19 +46,33 @@ function setup() {
 }
 
 function draw() {
-  background(30)
-  gameState.balls.forEach(b => drawBall(b.position, b.type))
-  gameState.cushions.forEach(c => drawCushion(c.vertices))
+  background(30);
+  const { targetPosition, balls, cushions } = gameState;
+  if (targetPosition) drawTargetingLine(balls[0].position, targetPosition);
+  balls.forEach(b => drawBall(b.position, b.type));
+  cushions.forEach(c => drawCushion(c.vertices));
 }
 
-window.addEventListener('mousedown', ({ toElement, clientX, clientY }) => {
+let isMouseDown = false;
+window.addEventListener('mousedown', ({ toElement }) => {
+  console.log('mousedown in canvas space');
+  if (toElement.id !== 'canvas') return;
+  isMouseDown = true;
+});
+
+window.addEventListener('mouseup', () => {
+  console.log('mouseup event');
+  isMouseDown = false;
+});
+
+window.addEventListener('mousemove', ({ toElement, clientX, clientY }) => {
+  if (!isMouseDown) return;
   if (toElement.id !== 'canvas') return;
   const canvasPosition = {
     x: clientX - toElement.offsetLeft,
     y: clientY - toElement.offsetTop,
   }
-  console.log('mousedown at canvas space:', canvasPosition)
-  socket.emit('positionTarget', canvasPosition);
+  socket.emit('setTarget', canvasPosition);
 });
 
 window.addEventListener('keydown', (event) => {
@@ -107,8 +130,8 @@ const hostGame = () => {
   engine.world.gravity = { x: 0, y: 0 };
 
   // mouse dragging stuff for host only
-  const mouseConstraint = MouseConstraint.create(engine, { mouse: Mouse.create(document.body) });
-  World.add(engine.world, mouseConstraint);
+  // const mouseConstraint = MouseConstraint.create(engine, { mouse: Mouse.create(document.body) });
+  // World.add(engine.world, mouseConstraint);
 
   const cushions = [
     // left side
@@ -135,10 +158,12 @@ const hostGame = () => {
     Bodies.circle(500, 300, BALL_RADIUS, ballProperties),
   ];
 
-  socket.on('positionTarget', (targetPosition) => {
-    if (targetIndicator) World.remove(engine.world, targetIndicator);
-    targetIndicator = Bodies.circle(targetPosition.x, targetPosition.y, 5, { isSensor: true });
-    World.add(engine.world, targetIndicator);
+  socket.on('setTarget', (targetPosition) => {
+    if (!targetIndicator) {
+      targetIndicator = Bodies.circle(targetPosition.x, targetPosition.y, 5, { isSensor: true });
+      World.add(engine.world, targetIndicator);
+    }
+    else Body.setPosition(targetIndicator, targetPosition);
   });
 
   socket.on('fireCue', (desiredForce) => {
@@ -147,6 +172,8 @@ const hostGame = () => {
     const direction = Vector.normalise(Vector.sub(targetIndicator.position, balls[0].position));
     const forceVector = Vector.mult(direction, force);
     Body.applyForce(balls[0], balls[0].position, forceVector);
+    World.remove(engine.world, targetIndicator);
+    targetIndicator = null;
   });
 
   Events.on(engine, 'beforeUpdate', () => {
@@ -159,7 +186,7 @@ const hostGame = () => {
   Events.on(engine, 'afterUpdate', () => {
     const gameState = {
       balls: balls.map(b => ({ position: b.position, type: 1 })),
-      targetIndicator: { position: targetIndicator ? targetIndicator.position : null },
+      targetPosition: targetIndicator ? targetIndicator.position : null,
     }
     // console.log(gameState)
     socket.emit('gameStateUpdated', gameState);
@@ -168,4 +195,6 @@ const hostGame = () => {
   World.add(engine.world, [...balls, ...cushions]);
 
   Engine.run(engine);
+
+  return () => Engine.clear(engine);
 }
