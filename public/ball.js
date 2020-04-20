@@ -2,7 +2,7 @@ const BALL_PROPERTIES = {
   BODY: {
     friction: 0.3,
     frictionStatic: 0.1,
-    frictionAir: 0.01,
+    frictionAir: 0,
     restitution: 0.6,
     density: 200,
   },
@@ -20,8 +20,16 @@ const createBall = (world, type, position) => {
   World.add(world, body);
 
   Events.on(engine, 'beforeUpdate', () => {
-    if (body.angularSpeed < BALL_PROPERTIES.MAX_ANGULAR_SPEED) return;
-    Body.setAngularVelocity(body, BALL_PROPERTIES.MAX_ANGULAR_SPEED * Math.sign(body.angularVelocity));
+    if (body.speed < 6) {
+      if (body.frictionAir === 0) Body.set(body, 'frictionAir', 0.01);
+    } else {
+      if (body.frictionAir > 0) Body.set(body, 'frictionAir', 0);
+      Body.set(body, 'velocity', Vector.mult(body.velocity, 0.995));
+    }
+
+    if (body.angularSpeed >= BALL_PROPERTIES.MAX_ANGULAR_SPEED) {
+      Body.setAngularVelocity(body, BALL_PROPERTIES.MAX_ANGULAR_SPEED * Math.sign(body.angularVelocity));
+    }
   });
 
   const applyForce = (vector) => Body.applyForce(body, body.position, vector);

@@ -74,7 +74,7 @@ const CUSHION_BOX_WIDTH = 50; // for correct chamfering
 const CUSHION_BOUNDARY_OFFSET = (CUSHION_BOX_WIDTH / 2) - CUSHION_WIDTH;
 const CUSHION_CORNER_RADIUS = 30;
 
-const FORCE_MULTIPLYER = 100;
+const FORCE_MULTIPLYER = 180;
 
 Resolver._restingThresh = 0.01;
 
@@ -117,9 +117,10 @@ const hostGame = () => {
 
   const balls = [
     createBall(engine.world, 0, { x: 200, y: 400 }),
-    createBall(engine.world, 1, { x: 495, y: 305 }),
+    createBall(engine.world, 1, { x: 485, y: 305 }),
     createBall(engine.world, 1, { x: 500, y: 310 }),
     createBall(engine.world, 2, { x: 500, y: 300 }),
+    createBall(engine.world, 2, { x: 515, y: 305 }),
   ];
 
   socket.on('setTargetDirection', (targetPosition) => {

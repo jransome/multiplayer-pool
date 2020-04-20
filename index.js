@@ -2,11 +2,12 @@ const path = require('path');
 const express = require('express');
 const socket = require('socket.io');
 
+const PORT = process.env.PORT || 3001;
 const app = express();
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-const server = app.listen(3001, () => console.log('Server running'));
+const server = app.listen(PORT, () => console.log('Server running'));
 
 const socketServer = socket(server);
 
