@@ -3,13 +3,13 @@ const gameState = {
   balls: [],
   cushions: [],
   targetVector: null,
-}
+};
 
 // temp way of forcing only one host
 let isHost = null;
 let stopGame = null;
 window.addEventListener('keydown', (event) => {
-  if (isHost === null || isHost === true && event.key === 'g') {
+  if ((isHost === null || isHost === true) && event.key === 'g') {
     console.log('hosting game...');
     hostGame();
     isHost = true;
@@ -19,24 +19,18 @@ window.addEventListener('keydown', (event) => {
 
 // RENDER STUFF
 socket.on('gameStart', (data) => {
-  if (isHost === null) isHost = false; 
+  if (isHost === null) isHost = false;
   gameState.cushions = data.cushions;
-})
+});
 
 socket.on('gameStateUpdated', (newState) => {
   gameState.balls = newState.balls;
   gameState.targetVector = newState.targetVector;
 });
 
-const BALL_TYPE_COLOUR_MAP = {
-  0: [255, 255, 255], // cue
-  1: [255, 0, 0], // reds
-  2: [255, 255, 0], // yellows
-}
-
-const drawBall = (position, type) => {
-  fill(...BALL_TYPE_COLOUR_MAP[type]);
-  stroke(...BALL_TYPE_COLOUR_MAP[type]);
+const drawBall = (position, colour) => {
+  fill(...colour);
+  stroke(...colour);
   strokeWeight(1);
   circle(position.x, position.y, BALL_RADIUS * 2);
 }
@@ -55,7 +49,7 @@ const drawTargetingLine = (cuePosition, directionVector) => {
   const endPoint = {
     x: cuePosition.x + directionVector.x * 1200,
     y: cuePosition.y + directionVector.y * 1200,
-  }
+  };
   line(cuePosition.x, cuePosition.y, endPoint.x, endPoint.y);
 }
 
@@ -67,10 +61,12 @@ function draw() {
   background(30);
   const { targetVector, balls, cushions } = gameState;
   if (targetVector) drawTargetingLine(balls[0].position, targetVector);
-  balls.forEach(b => drawBall(b.position, b.type));
+  balls.forEach(b => drawBall(b.position, b.colour));
   cushions.forEach(c => drawCushion(c.vertices));
 }
 
+
+// INPUT STUFF
 let isMouseDown = false;
 window.addEventListener('mousedown', ({ toElement }) => {
   console.log('mousedown in canvas space');
@@ -89,7 +85,7 @@ window.addEventListener('mousemove', ({ toElement, clientX, clientY }) => {
   const canvasPosition = {
     x: clientX - toElement.offsetLeft,
     y: clientY - toElement.offsetTop,
-  }
+  };
   socket.emit('setTargetDirection', canvasPosition);
 });
 
@@ -101,7 +97,7 @@ window.addEventListener('keydown', (event) => {
 
 
 // ENGINE STUFF
-const { Engine, Events, Render, Resolver, World, Body, Bodies, Mouse, MouseConstraint, Vector } = Matter
+const { Engine, Events, Render, Resolver, World, Body, Bodies, Mouse, MouseConstraint, Vector } = Matter;
 
 const ENGINE_DELTA_TIME_MS = 1000 / 60;
 
@@ -118,14 +114,6 @@ const MAX_BALL_ANGULAR_VELOCITY = 0.3;
 const FORCE_MULTIPLYER = 100;
 
 Resolver._restingThresh = 0.01;
-
-const ballProperties = {
-  friction: 0.3,
-  frictionStatic: 0.1,
-  frictionAir: 0.01,
-  restitution: 0.6,
-  density: 200,
-}
 
 const cushionProperties = {
   isStatic: true,
@@ -159,46 +147,47 @@ const hostGame = () => {
   socket.emit('gameStart', {
     cushions: cushions.map(c => ({
       vertices: c.vertices.map(({ x, y }) => ({ x, y })),
-    }))
-  })
+    })),
+  });
 
   const balls = [
-    Bodies.circle(200, 400, BALL_RADIUS, ballProperties), // cue
-    Bodies.circle(495, 305, BALL_RADIUS, ballProperties),
-    Bodies.circle(500, 310, BALL_RADIUS, ballProperties),
-    Bodies.circle(500, 300, BALL_RADIUS, ballProperties),
+    createBall(engine.world, 0, { x: 200, y: 400 }),
+    createBall(engine.world, 1, { x: 495, y: 305 }),
+    createBall(engine.world, 1, { x: 500, y: 310 }),
+    createBall(engine.world, 2, { x: 500, y: 300 }),
   ];
 
   socket.on('setTargetDirection', (targetPosition) => {
-    targetVector = Vector.normalise(Vector.sub(targetPosition, balls[0].position));
+    targetVector = Vector.normalise(Vector.sub(targetPosition, balls[0].getGameState().position));
   });
 
   socket.on('fireCue', (desiredForce) => {
     if (!targetVector) return;
     const force = desiredForce * desiredForce * FORCE_MULTIPLYER;
     const forceVector = Vector.mult(targetVector, force);
-    Body.applyForce(balls[0], balls[0].position, forceVector);
+    balls[0].applyForce(forceVector);
     World.remove(engine.world, targetVector);
     targetVector = null;
   });
 
-  Events.on(engine, 'beforeUpdate', () => {
-    if (balls[0].angularSpeed >= MAX_BALL_ANGULAR_VELOCITY) {
-      console.log(balls[0].angularVelocity);
-      Body.setAngularVelocity(balls[0], MAX_BALL_ANGULAR_VELOCITY * Math.sign(balls[0].angularVelocity));
-    }
-  });
+  // Events.on(engine, 'beforeUpdate', () => {
+  //   if (balls[0].angularSpeed >= MAX_BALL_ANGULAR_VELOCITY) {
+  //     console.log(balls[0].angularVelocity);
+  //     Body.setAngularVelocity(balls[0], MAX_BALL_ANGULAR_VELOCITY * Math.sign(balls[0].angularVelocity));
+  //   }
+  // });
 
   Events.on(engine, 'afterUpdate', () => {
     const gameState = {
-      balls: balls.map(b => ({ position: b.position, type: 1 })),
       targetVector,
-    }
-    // console.log(gameState)
+      balls: balls.map(b => b.getGameState()),
+    };
+    // console.log(gameState);
     socket.emit('gameStateUpdated', gameState);
   });
 
-  World.add(engine.world, [...balls, ...cushions]);
+  World.add(engine.world, [...cushions]);
+  // World.add(engine.world, [...balls.map(b => b.body), ...cushions]);
 
   Engine.run(engine);
 }
