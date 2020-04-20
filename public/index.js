@@ -17,6 +17,8 @@ window.addEventListener('keydown', (event) => {
 });
 // temp
 
+registerInputListeners(socket);
+
 // RENDER STUFF
 socket.on('gameStart', (data) => {
   if (isHost === null) isHost = false;
@@ -27,13 +29,6 @@ socket.on('gameStateUpdated', (newState) => {
   gameState.balls = newState.balls;
   gameState.targetVector = newState.targetVector;
 });
-
-const drawBall = (position, colour) => {
-  fill(...colour);
-  stroke(...colour);
-  strokeWeight(1);
-  circle(position.x, position.y, BALL_RADIUS * 2);
-}
 
 const drawCushion = (vertices) => {
   fill(180);
@@ -61,39 +56,9 @@ function draw() {
   background(30);
   const { targetVector, balls, cushions } = gameState;
   if (targetVector) drawTargetingLine(balls[0].position, targetVector);
-  balls.forEach(b => drawBall(b.position, b.colour));
+  balls.forEach(b => drawBall(b));
   cushions.forEach(c => drawCushion(c.vertices));
 }
-
-
-// INPUT STUFF
-let isMouseDown = false;
-window.addEventListener('mousedown', ({ toElement }) => {
-  console.log('mousedown in canvas space');
-  if (toElement.id !== 'canvas') return;
-  isMouseDown = true;
-});
-
-window.addEventListener('mouseup', () => {
-  console.log('mouseup event');
-  isMouseDown = false;
-});
-
-window.addEventListener('mousemove', ({ toElement, clientX, clientY }) => {
-  if (!isMouseDown) return;
-  if (toElement.id !== 'canvas') return;
-  const canvasPosition = {
-    x: clientX - toElement.offsetLeft,
-    y: clientY - toElement.offsetTop,
-  };
-  socket.emit('setTargetDirection', canvasPosition);
-});
-
-window.addEventListener('keydown', (event) => {
-  const desiredForce = +event.key;
-  if (desiredForce < 0) return;
-  socket.emit('fireCue', desiredForce);
-});
 
 
 // ENGINE STUFF
@@ -109,8 +74,6 @@ const CUSHION_BOX_WIDTH = 50; // for correct chamfering
 const CUSHION_BOUNDARY_OFFSET = (CUSHION_BOX_WIDTH / 2) - CUSHION_WIDTH;
 const CUSHION_CORNER_RADIUS = 30;
 
-const BALL_RADIUS = 15;
-const MAX_BALL_ANGULAR_VELOCITY = 0.3;
 const FORCE_MULTIPLYER = 100;
 
 Resolver._restingThresh = 0.01;
@@ -144,6 +107,8 @@ const hostGame = () => {
     Bodies.rectangle(-CUSHION_BOUNDARY_OFFSET, TABLE_WIDTH / 2, TABLE_WIDTH * 0.87, CUSHION_BOX_WIDTH, { ...cushionProperties, angle: 1.5 * Math.PI }),
   ];
   cushions.forEach(b => b.restitution = 0.6);
+  World.add(engine.world, [...cushions]);
+
   socket.emit('gameStart', {
     cushions: cushions.map(c => ({
       vertices: c.vertices.map(({ x, y }) => ({ x, y })),
@@ -170,13 +135,6 @@ const hostGame = () => {
     targetVector = null;
   });
 
-  // Events.on(engine, 'beforeUpdate', () => {
-  //   if (balls[0].angularSpeed >= MAX_BALL_ANGULAR_VELOCITY) {
-  //     console.log(balls[0].angularVelocity);
-  //     Body.setAngularVelocity(balls[0], MAX_BALL_ANGULAR_VELOCITY * Math.sign(balls[0].angularVelocity));
-  //   }
-  // });
-
   Events.on(engine, 'afterUpdate', () => {
     const gameState = {
       targetVector,
@@ -185,9 +143,6 @@ const hostGame = () => {
     // console.log(gameState);
     socket.emit('gameStateUpdated', gameState);
   });
-
-  World.add(engine.world, [...cushions]);
-  // World.add(engine.world, [...balls.map(b => b.body), ...cushions]);
 
   Engine.run(engine);
 }
