@@ -11,26 +11,37 @@ const server = app.listen(PORT, () => console.log('Server running'));
 
 const socketServer = socket(server);
 
-const players = [];
+let idCounter = 0;
 
+const joinGame = (socket, gameId) => {
+  socket.join(gameId);
+
+  socket.on('gameStateUpdated', (state) => {
+    socketServer.to(gameId).emit('gameStateUpdated', state);
+  });
+  socket.on('fireCue', (state) => {
+    socketServer.to(gameId).emit('fireCue', state);
+  });
+  socket.on('setTargetDirection', (state) => {
+    socketServer.to(gameId).emit('setTargetDirection', state);
+  });
+}
 
 socketServer.sockets.on('connect', (socket) => {
   console.log('new client connected, ID:', socket.id);
-  players.push(socket.id);
-  socket.join('game1');
 
-  socket.on('gameStart', (state) => {
-    socketServer.to('game1').emit('gameStart', state)
-  })
-  socket.on('gameStateUpdated', (state) => {
-    socketServer.to('game1').emit('gameStateUpdated', state)
-  })
-  socket.on('fireCue', (state) => {
-    socketServer.to('game1').emit('fireCue', state)
-  })
-  socket.on('setTargetDirection', (state) => {
-    socketServer.to('game1').emit('setTargetDirection', state)
-  })
+  socket.on('hosting', (ack) => {
+    const gameId = ++idCounter;
+    joinGame(socket, `game-${gameId}`);
+    ack(gameId);
+  });
+
+  socket.on('joinAttempt', (gameId, ack) => {
+    if (gameId > 0 && gameId <= idCounter) {
+      joinGame(socket, `game-${gameId}`);
+      ack(true);
+    } else ack(false);
+  });
 
   socket.on('disconnect', () => {
     console.log('client disconnected, ID:', socket.id);

@@ -7,14 +7,12 @@ const registerInputListeners = (socket) => {
   })
 
   window.addEventListener('mousedown', ({ toElement, clientX, clientY }) => {
-    console.log('mousedown in canvas space');
     if (toElement.id !== 'canvas') return;
     socket.emit('setTargetDirection', calculateCanvasPosition(toElement, { clientX, clientY }));
     isMouseDown = true;
   });
 
   window.addEventListener('mouseup', () => {
-    console.log('mouseup event');
     isMouseDown = false;
   });
 

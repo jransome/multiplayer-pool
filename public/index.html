@@ -8,6 +8,7 @@
   <script src="https://unpkg.com/matter-js@0.14.2/build/matter.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/p5@1.0.0/lib/p5.min.js"></script>
   <script src="/socket.io/socket.io.js"></script>
+  <script defer src="lobby.js"></script>
   <script defer src="input.js"></script>
   <script defer src="ball.js"></script>
   <script defer src="index.js"></script>
@@ -15,6 +16,11 @@
 
 <body>
   <div id="game"></div>
+  <p id="idLabel"></p>
+  <button id="hostBtn">Host game</button>
+  <p>or join an existing one:</p>
+  <input id="idInput" type="text" placeholder="enter game pin" />
+  <button id="joinBtn">Join game</button>
 </body>
 
 </html>

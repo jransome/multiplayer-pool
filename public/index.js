@@ -5,28 +5,13 @@ const gameState = {
   targetVector: null,
 };
 
-// temp way of forcing only one host
-let isHost = null;
-let stopGame = null;
-window.addEventListener('keydown', (event) => {
-  if ((isHost === null || isHost === true) && event.key === 'g') {
-    console.log('hosting game...');
-    hostGame();
-    isHost = true;
-  }
-});
-// temp
-
+initialiseLobby(socket);
 registerInputListeners(socket);
 
 // RENDER STUFF
-socket.on('gameStart', (data) => {
-  if (isHost === null) isHost = false;
-  gameState.cushions = data.cushions;
-});
-
 socket.on('gameStateUpdated', (newState) => {
   gameState.balls = newState.balls;
+  gameState.cushions = newState.cushions;
   gameState.targetVector = newState.targetVector;
 });
 
@@ -109,12 +94,6 @@ const hostGame = () => {
   cushions.forEach(b => b.restitution = 0.6);
   World.add(engine.world, [...cushions]);
 
-  socket.emit('gameStart', {
-    cushions: cushions.map(c => ({
-      vertices: c.vertices.map(({ x, y }) => ({ x, y })),
-    })),
-  });
-
   const balls = [
     createBall(engine.world, 0, { x: 200, y: 400 }),
     createBall(engine.world, 1, { x: 485, y: 305 }),
@@ -140,10 +119,11 @@ const hostGame = () => {
     const gameState = {
       targetVector,
       balls: balls.map(b => b.getGameState()),
+      cushions: cushions.map(c => ({
+        vertices: c.vertices.map(({ x, y }) => ({ x, y })),
+      })),
     };
-    // console.log(gameState);
     socket.emit('gameStateUpdated', gameState);
   });
-
   Engine.run(engine);
 }
