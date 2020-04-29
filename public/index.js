@@ -5,9 +5,6 @@ const gameState = {
   targetVector: null,
 };
 
-initialiseLobby(socket);
-registerInputListeners(socket);
-
 // RENDER STUFF
 socket.on('gameStateUpdated', (newState) => {
   gameState.balls = newState.balls;
@@ -38,10 +35,10 @@ function setup() {
 }
 
 function draw() {
-  background(30);
+  background(30, 50, 200);
   const { targetVector, balls, cushions } = gameState;
   if (targetVector) drawTargetingLine(balls[0].position, targetVector);
-  balls.forEach(b => drawBall(b));
+  balls.forEach(b => Ball.draw(b));
   cushions.forEach(c => drawCushion(c.vertices));
 }
 
@@ -57,17 +54,13 @@ const TABLE_WIDTH = 500;
 const CUSHION_WIDTH = 20;
 const CUSHION_BOX_WIDTH = 50; // for correct chamfering
 const CUSHION_BOUNDARY_OFFSET = (CUSHION_BOX_WIDTH / 2) - CUSHION_WIDTH;
-const CUSHION_CORNER_RADIUS = 30;
+const CUSHION_CORNER_RADIUS = 40;
+const SIDE_CUSHION_LENGTH = TABLE_LENGTH * 0.45;
+const TOP_CUSHION_LENGTH = TABLE_WIDTH * 0.88;
 
-const FORCE_MULTIPLYER = 180;
+const FORCE_MULTIPLYER = 100;
 
 Resolver._restingThresh = 0.01;
-
-const cushionProperties = {
-  isStatic: true,
-  friction: 0.8,
-  chamfer: { radius: [0, 0, CUSHION_CORNER_RADIUS, CUSHION_CORNER_RADIUS] },
-}
 
 const hostGame = () => {
   let targetVector = null;
@@ -76,34 +69,37 @@ const hostGame = () => {
   window.engine = engine; // for debug
   engine.world.gravity = { x: 0, y: 0 };
 
-  // mouse dragging stuff for host only
+  // mouse dragging stuff
   // const mouseConstraint = MouseConstraint.create(engine, { mouse: Mouse.create(document.body) });
   // World.add(engine.world, mouseConstraint);
 
+  const cushionProperties = {
+    isStatic: true,
+    friction: 0.8,
+    chamfer: { radius: [0, 0, CUSHION_CORNER_RADIUS, CUSHION_CORNER_RADIUS] },
+  }
+
   const cushions = [
     // left side
-    Bodies.rectangle(TABLE_LENGTH * 0.255, -CUSHION_BOUNDARY_OFFSET, TABLE_LENGTH * 0.45, CUSHION_BOX_WIDTH, { ...cushionProperties }),
-    Bodies.rectangle(TABLE_LENGTH * 0.745, -CUSHION_BOUNDARY_OFFSET, TABLE_LENGTH * 0.45, CUSHION_BOX_WIDTH, { ...cushionProperties }),
+    Bodies.rectangle(TABLE_LENGTH * 0.254, -CUSHION_BOUNDARY_OFFSET, SIDE_CUSHION_LENGTH, CUSHION_BOX_WIDTH, { ...cushionProperties }),
+    Bodies.rectangle(TABLE_LENGTH * 0.746, -CUSHION_BOUNDARY_OFFSET, SIDE_CUSHION_LENGTH, CUSHION_BOX_WIDTH, { ...cushionProperties }),
     // right side
-    Bodies.rectangle(TABLE_LENGTH * 0.255, TABLE_WIDTH + CUSHION_BOUNDARY_OFFSET, TABLE_LENGTH * 0.45, CUSHION_BOX_WIDTH, { ...cushionProperties, angle: Math.PI }),
-    Bodies.rectangle(TABLE_LENGTH * 0.745, TABLE_WIDTH + CUSHION_BOUNDARY_OFFSET, TABLE_LENGTH * 0.45, CUSHION_BOX_WIDTH, { ...cushionProperties, angle: Math.PI }),
+    Bodies.rectangle(TABLE_LENGTH * 0.254, TABLE_WIDTH + CUSHION_BOUNDARY_OFFSET, SIDE_CUSHION_LENGTH, CUSHION_BOX_WIDTH, { ...cushionProperties, angle: Math.PI }),
+    Bodies.rectangle(TABLE_LENGTH * 0.746, TABLE_WIDTH + CUSHION_BOUNDARY_OFFSET, SIDE_CUSHION_LENGTH, CUSHION_BOX_WIDTH, { ...cushionProperties, angle: Math.PI }),
     // top + bottom
-    Bodies.rectangle(TABLE_LENGTH + CUSHION_BOUNDARY_OFFSET, TABLE_WIDTH / 2, TABLE_WIDTH * 0.87, CUSHION_BOX_WIDTH, { ...cushionProperties, angle: 0.5 * Math.PI }),
-    Bodies.rectangle(-CUSHION_BOUNDARY_OFFSET, TABLE_WIDTH / 2, TABLE_WIDTH * 0.87, CUSHION_BOX_WIDTH, { ...cushionProperties, angle: 1.5 * Math.PI }),
+    Bodies.rectangle(TABLE_LENGTH + CUSHION_BOUNDARY_OFFSET, TABLE_WIDTH / 2, TOP_CUSHION_LENGTH, CUSHION_BOX_WIDTH, { ...cushionProperties, angle: 0.5 * Math.PI }),
+    Bodies.rectangle(-CUSHION_BOUNDARY_OFFSET, TABLE_WIDTH / 2, TOP_CUSHION_LENGTH, CUSHION_BOX_WIDTH, { ...cushionProperties, angle: 1.5 * Math.PI }),
   ];
   cushions.forEach(b => b.restitution = 0.6);
   World.add(engine.world, [...cushions]);
 
   const balls = [
-    createBall(engine.world, 0, { x: 200, y: 400 }),
-    createBall(engine.world, 1, { x: 485, y: 305 }),
-    createBall(engine.world, 1, { x: 500, y: 310 }),
-    createBall(engine.world, 2, { x: 500, y: 300 }),
-    createBall(engine.world, 2, { x: 515, y: 305 }),
-  ];
+    new Ball(engine.world, engine, 0, { x: TABLE_LENGTH * 0.2, y: TABLE_WIDTH / 2 }),
+    ...createRack({ x: TABLE_LENGTH * 0.7, y: TABLE_WIDTH / 2 }, engine.world, engine),
+  ]
 
   socket.on('setTargetDirection', (targetPosition) => {
-    targetVector = Vector.normalise(Vector.sub(targetPosition, balls[0].getGameState().position));
+    targetVector = Vector.normalise(Vector.sub(targetPosition, balls[0].getState().position));
   });
 
   socket.on('fireCue', (desiredForce) => {
@@ -118,7 +114,7 @@ const hostGame = () => {
   Events.on(engine, 'afterUpdate', () => {
     const gameState = {
       targetVector,
-      balls: balls.map(b => b.getGameState()),
+      balls: balls.map(b => b.getState()),
       cushions: cushions.map(c => ({
         vertices: c.vertices.map(({ x, y }) => ({ x, y })),
       })),
@@ -127,3 +123,6 @@ const hostGame = () => {
   });
   Engine.run(engine);
 }
+
+initialiseLobby(socket, hostGame);
+registerInputListeners(socket);

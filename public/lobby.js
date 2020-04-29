@@ -1,4 +1,4 @@
-function initialiseLobby(socket) {
+function initialiseLobby(socket, hostGame) {
   const idLabel = document.querySelector('#idLabel');
   const idInput = document.querySelector('#idInput');
   const hostButton = document.querySelector('#hostBtn');
