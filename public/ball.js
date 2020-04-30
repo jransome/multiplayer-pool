@@ -3,7 +3,7 @@ const BALL_PROPERTIES = {
     friction: 0.3,
     frictionStatic: 0.1,
     frictionAir: 0,
-    restitution: 0.65,
+    restitution: 0.7,
     density: 100,
   },
   COLOUR_MAP: {
@@ -18,18 +18,23 @@ const BALL_PROPERTIES = {
 
 class Ball {
   constructor(world, engine, type, position) {
-    this.type = type
+    this.type = type;
+    this.startingPosition = position;
     this.body = Bodies.circle(position.x, position.y, BALL_PROPERTIES.RADIUS, BALL_PROPERTIES.BODY);
     World.add(world, this.body);
     Events.on(engine, 'beforeUpdate', this._beforeUpdate.bind(this))
   }
 
   static draw(ballState) {
-    const { position, colour } = ballState
+    const { position, colour } = ballState;
     fill(...colour);
     stroke(...colour);
     strokeWeight(1);
     circle(position.x, position.y, BALL_PROPERTIES.RADIUS * 2);
+  }
+
+  resetPosition(){
+    Body.setPosition(this.body, this.startingPosition);
   }
 
   applyForce(vector) {
@@ -84,5 +89,5 @@ const createRack = (anchorPoint, world, engine) => {
     new Ball(world, engine, 2, { x: x + rowDistance * 4, y }),
     new Ball(world, engine, 3, { x: x + rowDistance * 4, y: y + BALL_PROPERTIES.RADIUS * 2 }),
     new Ball(world, engine, 2, { x: x + rowDistance * 4, y: y + BALL_PROPERTIES.RADIUS * 4 }),
-  ]
+  ];
 }

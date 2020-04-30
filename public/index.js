@@ -58,7 +58,7 @@ const CUSHION_CORNER_RADIUS = 40;
 const SIDE_CUSHION_LENGTH = TABLE_LENGTH * 0.45;
 const TOP_CUSHION_LENGTH = TABLE_WIDTH * 0.88;
 
-const FORCE_MULTIPLYER = 100;
+const FORCE_MULTIPLYER = 150;
 
 Resolver._restingThresh = 0.01;
 
@@ -90,7 +90,6 @@ const hostGame = () => {
     Bodies.rectangle(TABLE_LENGTH + CUSHION_BOUNDARY_OFFSET, TABLE_WIDTH / 2, TOP_CUSHION_LENGTH, CUSHION_BOX_WIDTH, { ...cushionProperties, angle: 0.5 * Math.PI }),
     Bodies.rectangle(-CUSHION_BOUNDARY_OFFSET, TABLE_WIDTH / 2, TOP_CUSHION_LENGTH, CUSHION_BOX_WIDTH, { ...cushionProperties, angle: 1.5 * Math.PI }),
   ];
-  cushions.forEach(b => b.restitution = 0.6);
   World.add(engine.world, [...cushions]);
 
   const balls = [
