@@ -16,7 +16,7 @@ function initialiseLobby(socket, hostGame) {
 
   joinButton.addEventListener('click', () => {
     if (isNaN(+idInput.value)) {
-      console.log('Invalid pin entered');
+      console.log('Invalid game Id entered');
       return;
     }
     socket.emit('joinAttempt', +idInput.value, (isSuccessful) => {

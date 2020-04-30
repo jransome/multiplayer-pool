@@ -22,6 +22,7 @@ const drawCushion = (vertices) => {
 }
 
 const drawTargetingLine = (cuePosition, directionVector) => {
+  stroke('white');
   strokeWeight(2);
   const endPoint = {
     x: cuePosition.x + directionVector.x * 1200,
@@ -38,34 +39,21 @@ function draw() {
   background(30, 50, 200);
   const { targetVector, balls, cushions } = gameState;
   if (targetVector) drawTargetingLine(balls[0].position, targetVector);
-  balls.forEach(b => Ball.draw(b));
+  Pocket.drawAll();
   cushions.forEach(c => drawCushion(c.vertices));
+  balls.forEach(b => Ball.draw(b));
 }
 
 
 // ENGINE STUFF
 const { Engine, Events, Render, Resolver, World, Body, Bodies, Mouse, MouseConstraint, Vector } = Matter;
 
-const ENGINE_DELTA_TIME_MS = 1000 / 60;
-
-const TABLE_LENGTH = 1000;
-const TABLE_WIDTH = 500;
-
-const CUSHION_WIDTH = 20;
-const CUSHION_BOX_WIDTH = 50; // for correct chamfering
-const CUSHION_BOUNDARY_OFFSET = (CUSHION_BOX_WIDTH / 2) - CUSHION_WIDTH;
-const CUSHION_CORNER_RADIUS = 40;
-const SIDE_CUSHION_LENGTH = TABLE_LENGTH * 0.45;
-const TOP_CUSHION_LENGTH = TABLE_WIDTH * 0.88;
-
-const FORCE_MULTIPLYER = 150;
-
 Resolver._restingThresh = 0.01;
 
 const hostGame = () => {
   let targetVector = null;
 
-  const engine = Engine.create();
+  const engine = Engine.create({ constraintIterations: 5 });
   window.engine = engine; // for debug
   engine.world.gravity = { x: 0, y: 0 };
 
@@ -92,10 +80,12 @@ const hostGame = () => {
   ];
   World.add(engine.world, [...cushions]);
 
+  const pockets = POCKET_PROPERTIES.POSITIONS.map(pos => new Pocket(engine, pos));
+
   const balls = [
-    new Ball(engine.world, engine, 0, { x: TABLE_LENGTH * 0.2, y: TABLE_WIDTH / 2 }),
-    ...createRack({ x: TABLE_LENGTH * 0.7, y: TABLE_WIDTH / 2 }, engine.world, engine),
-  ]
+    new Ball(engine, CUE, { x: TABLE_LENGTH * 0.2, y: TABLE_WIDTH / 2 }),
+    ...createRack({ x: TABLE_LENGTH * 0.7, y: TABLE_WIDTH / 2 }, engine),
+  ];
 
   socket.on('setTargetDirection', (targetPosition) => {
     targetVector = Vector.normalise(Vector.sub(targetPosition, balls[0].getState().position));
@@ -114,7 +104,7 @@ const hostGame = () => {
     const gameState = {
       targetVector,
       balls: balls.map(b => b.getState()),
-      cushions: cushions.map(c => ({
+      cushions: cushions.map(c => ({ // TODO do once on handshake
         vertices: c.vertices.map(({ x, y }) => ({ x, y })),
       })),
     };

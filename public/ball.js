@@ -1,39 +1,24 @@
-const BALL_PROPERTIES = {
-  BODY: {
-    friction: 0.3,
-    frictionStatic: 0.1,
-    frictionAir: 0,
-    restitution: 0.7,
-    density: 100,
-  },
-  COLOUR_MAP: {
-    0: [250, 255, 225], // cue
-    1: [10, 10, 10], // black
-    2: [255, 0, 0], // reds
-    3: [255, 220, 0], // yellows
-  },
-  RADIUS: 15,
-  MAX_ANGULAR_SPEED: 0.3,
-};
-
 class Ball {
-  constructor(world, engine, type, position) {
+  static BODY_IDS = { [CUE]: [], [BLACK]: [], [RED]: [], [YELLOW]: [] };
+
+  constructor(engine, type, position) {
     this.type = type;
     this.startingPosition = position;
-    this.body = Bodies.circle(position.x, position.y, BALL_PROPERTIES.RADIUS, BALL_PROPERTIES.BODY);
-    World.add(world, this.body);
-    Events.on(engine, 'beforeUpdate', this._beforeUpdate.bind(this))
+    this.body = Bodies.circle(position.x, position.y, BALL_PROPERTIES.RADIUS, BALL_PROPERTIES.PHYSICS);
+    World.add(engine.world, this.body);
+    Events.on(engine, 'beforeUpdate', this._beforeUpdate.bind(this));
+    Ball.BODY_IDS[type].push(this.body.id);
   }
 
   static draw(ballState) {
     const { position, colour } = ballState;
-    fill(...colour);
-    stroke(...colour);
+    fill(colour);
+    stroke(colour);
     strokeWeight(1);
     circle(position.x, position.y, BALL_PROPERTIES.RADIUS * 2);
   }
 
-  resetPosition(){
+  resetPosition() {
     Body.setPosition(this.body, this.startingPosition);
   }
 
@@ -65,29 +50,29 @@ class Ball {
   }
 }
 
-const createRack = (anchorPoint, world, engine) => {
+const createRack = (anchorPoint, engine) => {
   const { x, y } = anchorPoint;
   const rowDistance = BALL_PROPERTIES.RADIUS * 2 * 0.85;
 
   return [
-    new Ball(world, engine, 3, anchorPoint),
+    new Ball(engine, YELLOW, anchorPoint),
 
-    new Ball(world, engine, 2, { x: x + rowDistance, y: y - BALL_PROPERTIES.RADIUS }),
-    new Ball(world, engine, 2, { x: x + rowDistance, y: y + BALL_PROPERTIES.RADIUS }),
+    new Ball(engine, RED, { x: x + rowDistance, y: y - BALL_PROPERTIES.RADIUS }),
+    new Ball(engine, RED, { x: x + rowDistance, y: y + BALL_PROPERTIES.RADIUS }),
 
-    new Ball(world, engine, 3, { x: x + rowDistance * 2, y: y - BALL_PROPERTIES.RADIUS * 2 }),
-    new Ball(world, engine, 1, { x: x + rowDistance * 2, y }),
-    new Ball(world, engine, 3, { x: x + rowDistance * 2, y: y + BALL_PROPERTIES.RADIUS * 2 }),
+    new Ball(engine, YELLOW, { x: x + rowDistance * 2, y: y - BALL_PROPERTIES.RADIUS * 2 }),
+    new Ball(engine, BLACK, { x: x + rowDistance * 2, y }),
+    new Ball(engine, YELLOW, { x: x + rowDistance * 2, y: y + BALL_PROPERTIES.RADIUS * 2 }),
 
-    new Ball(world, engine, 2, { x: x + rowDistance * 3, y: y - BALL_PROPERTIES.RADIUS * 3 }),
-    new Ball(world, engine, 3, { x: x + rowDistance * 3, y: y - BALL_PROPERTIES.RADIUS }),
-    new Ball(world, engine, 2, { x: x + rowDistance * 3, y: y + BALL_PROPERTIES.RADIUS }),
-    new Ball(world, engine, 2, { x: x + rowDistance * 3, y: y + BALL_PROPERTIES.RADIUS * 3 }),
+    new Ball(engine, RED, { x: x + rowDistance * 3, y: y - BALL_PROPERTIES.RADIUS * 3 }),
+    new Ball(engine, YELLOW, { x: x + rowDistance * 3, y: y - BALL_PROPERTIES.RADIUS }),
+    new Ball(engine, RED, { x: x + rowDistance * 3, y: y + BALL_PROPERTIES.RADIUS }),
+    new Ball(engine, RED, { x: x + rowDistance * 3, y: y + BALL_PROPERTIES.RADIUS * 3 }),
 
-    new Ball(world, engine, 3, { x: x + rowDistance * 4, y: y - BALL_PROPERTIES.RADIUS * 4 }),
-    new Ball(world, engine, 3, { x: x + rowDistance * 4, y: y - BALL_PROPERTIES.RADIUS * 2 }),
-    new Ball(world, engine, 2, { x: x + rowDistance * 4, y }),
-    new Ball(world, engine, 3, { x: x + rowDistance * 4, y: y + BALL_PROPERTIES.RADIUS * 2 }),
-    new Ball(world, engine, 2, { x: x + rowDistance * 4, y: y + BALL_PROPERTIES.RADIUS * 4 }),
+    new Ball(engine, YELLOW, { x: x + rowDistance * 4, y: y - BALL_PROPERTIES.RADIUS * 4 }),
+    new Ball(engine, YELLOW, { x: x + rowDistance * 4, y: y - BALL_PROPERTIES.RADIUS * 2 }),
+    new Ball(engine, RED, { x: x + rowDistance * 4, y }),
+    new Ball(engine, YELLOW, { x: x + rowDistance * 4, y: y + BALL_PROPERTIES.RADIUS * 2 }),
+    new Ball(engine, RED, { x: x + rowDistance * 4, y: y + BALL_PROPERTIES.RADIUS * 4 }),
   ];
 }
