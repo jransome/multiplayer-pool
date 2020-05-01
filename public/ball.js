@@ -19,6 +19,7 @@ class Ball {
   }
 
   resetPosition() {
+    Body.setVelocity(this.body, { x: 0, y: 0 });
     Body.setPosition(this.body, this.startingPosition);
   }
 
@@ -54,6 +55,7 @@ const createRack = (anchorPoint, engine) => {
   const { x, y } = anchorPoint;
   const rowDistance = BALL_PROPERTIES.RADIUS * 2 * 0.85;
 
+  // TODO add tiny randomness to ball positions
   return [
     new Ball(engine, YELLOW, anchorPoint),
 
