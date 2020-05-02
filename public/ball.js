@@ -1,21 +1,26 @@
 class Ball {
-  static BODY_IDS = { [CUE]: [], [BLACK]: [], [RED]: [], [YELLOW]: [] };
+  static instances = {};
 
   constructor(engine, type, position) {
     this.type = type;
     this.startingPosition = position;
     this.body = Bodies.circle(position.x, position.y, BALL_PROPERTIES.RADIUS, BALL_PROPERTIES.PHYSICS);
+    this.id = this.body.id;
     World.add(engine.world, this.body);
     Events.on(engine, 'beforeUpdate', this._beforeUpdate.bind(this));
-    Ball.BODY_IDS[type].push(this.body.id);
+    Ball.instances[this.id] = this;
   }
 
-  static draw(ballState) {
+  static render(ballState) {
     const { position, colour } = ballState;
     fill(colour);
     stroke(colour);
     strokeWeight(1);
     circle(position.x, position.y, BALL_PROPERTIES.RADIUS * 2);
+  }
+
+  get position() {
+    return this.body.position;
   }
 
   resetPosition() {

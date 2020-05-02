@@ -12,7 +12,7 @@ socket.on('gameStateUpdated', (newState) => {
   gameState.targetVector = newState.targetVector;
 });
 
-const drawCushion = (vertices) => {
+const renderCushion = (vertices) => {
   fill(180);
   stroke(180);
   strokeWeight(1);
@@ -21,7 +21,7 @@ const drawCushion = (vertices) => {
   endShape(CLOSE);
 }
 
-const drawTargetingLine = (cuePosition, directionVector) => {
+const renderTargetingLine = (cuePosition, directionVector) => {
   stroke('white');
   strokeWeight(2);
   const endPoint = {
@@ -38,10 +38,10 @@ function setup() {
 function draw() {
   background(30, 50, 200);
   const { targetVector, balls, cushions } = gameState;
-  if (targetVector) drawTargetingLine(balls[0].position, targetVector);
-  Pocket.drawAll();
-  cushions.forEach(c => drawCushion(c.vertices));
-  balls.forEach(b => Ball.draw(b));
+  if (targetVector) renderTargetingLine(balls[0].position, targetVector);
+  Pocket.renderAll();
+  cushions.forEach(c => renderCushion(c.vertices));
+  balls.forEach(b => Ball.render(b));
 }
 
 const hostGame = () => {
