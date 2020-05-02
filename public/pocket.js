@@ -1,6 +1,6 @@
 class Pocket {
   constructor(engine, position) {
-    this.body = Bodies.circle(position.x, position.y, POCKET_PROPERTIES.COLLISION_RADIUS, POCKET_PROPERTIES.PHYSICS);
+    this.body = Bodies.circle(position.x, position.y, POCKET_PROPERTIES.COLLISION_RADIUS, POCKET_PROPERTIES.ENGINE);
     this.id = this.body.id;
     this.balls = [];
     World.add(engine.world, this.body);

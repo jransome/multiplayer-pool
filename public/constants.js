@@ -18,12 +18,15 @@ const RED = 'red';
 const YELLOW = 'yellow'
 
 const BALL_PROPERTIES = {
-  PHYSICS: {
+  CONSTANT_FRICTION_MULTIPLYER: 1.5,
+  DYNAMIC_FRICTION_MULTIPLYER: 0.85,
+  MAX_ANGULAR_SPEED: 0.3,
+  ENGINE: {
     label: 'ball',
     friction: 0.3,
     frictionStatic: 0.1,
     frictionAir: 0,
-    restitution: 0.7,
+    restitution: 0.65,
     density: 100,
   },
   COLOUR_MAP: {
@@ -33,11 +36,10 @@ const BALL_PROPERTIES = {
     [YELLOW]: [255, 220, 0],
   },
   RADIUS: 15,
-  MAX_ANGULAR_SPEED: 0.3,
 };
 
 const POCKET_PROPERTIES = {
-  PHYSICS: {
+  ENGINE: {
     label: 'pocket',
     isStatic: true,
     isSensor: true,

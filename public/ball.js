@@ -4,7 +4,7 @@ class Ball {
   constructor(engine, type, position) {
     this.type = type;
     this.startingPosition = position;
-    this.body = Bodies.circle(position.x, position.y, BALL_PROPERTIES.RADIUS, BALL_PROPERTIES.PHYSICS);
+    this.body = Bodies.circle(position.x, position.y, BALL_PROPERTIES.RADIUS, BALL_PROPERTIES.ENGINE);
     this.id = this.body.id;
     World.add(engine.world, this.body);
     Events.on(engine, 'beforeUpdate', this._beforeUpdate.bind(this));
@@ -40,16 +40,18 @@ class Ball {
   }
 
   _beforeUpdate() { // executes before engine tick
-    // dampen speed
-    if (this.body.speed < 6) {
-      Body.set(this.body, 'velocity', Vector.mult(this.body.velocity, 0.985));
-    } else {
-      Body.set(this.body, 'velocity', Vector.mult(this.body.velocity, 0.997));
-    }
+    // dampen velocity
+    const { CONSTANT_FRICTION_MULTIPLYER, DYNAMIC_FRICTION_MULTIPLYER, MAX_ANGULAR_SPEED } = BALL_PROPERTIES;
+    const normalisedInverse = Vector.mult(Vector.normalise(this.body.velocity), -1);
+    const friction = Vector.add(
+      Vector.mult(normalisedInverse, CONSTANT_FRICTION_MULTIPLYER), // constant friction
+      Vector.mult(normalisedInverse, this.body.speed * DYNAMIC_FRICTION_MULTIPLYER), // dynamic friction
+    );
+    this.applyForce(friction);
 
     // dampen angular velocity
-    if (this.body.angularSpeed > BALL_PROPERTIES.MAX_ANGULAR_SPEED) {
-      Body.setAngularVelocity(this.body, BALL_PROPERTIES.MAX_ANGULAR_SPEED * Math.sign(this.body.angularVelocity));
+    if (this.body.angularSpeed > MAX_ANGULAR_SPEED) {
+      Body.setAngularVelocity(this.body, MAX_ANGULAR_SPEED * Math.sign(this.body.angularVelocity));
     } else if (this.body.angularSpeed) {
       Body.setAngularVelocity(this.body, this.body.angularVelocity - (Math.sign(this.body.angularVelocity) * 0.001));
     }
