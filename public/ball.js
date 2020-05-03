@@ -56,7 +56,7 @@ class Ball {
   }
 
   _beforeUpdate() { // executes before engine tick
-    if (this.isSinking && this.colour[2] > 10) {
+    if (this.isSinking && this.colour[2] > 1) {
       this.colour[2] -= 5;
       return;
     }

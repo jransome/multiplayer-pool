@@ -14,7 +14,7 @@ function initialiseLobby(socket, hostGame) {
     hostGame();
   });
 
-  joinButton.addEventListener('click', () => {
+  const joinGame = () => {
     if (isNaN(+idInput.value)) {
       console.log('Invalid game Id entered');
       return;
@@ -28,5 +28,10 @@ function initialiseLobby(socket, hostGame) {
         joinButton.disabled = true;
       }
     });
+  }
+
+  joinButton.addEventListener('click', joinGame);
+  idInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') joinGame();
   });
 }
