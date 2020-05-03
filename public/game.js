@@ -27,7 +27,7 @@ class Game {
   constructor(socket) {
     this.socket = socket;
     this.targetVector = null;
-    this.engine = Engine.create({ constraintIterations: 5 }); // default = 2, higher numbers increase simulation quality
+    this.engine = Engine.create({ constraintIterations: 4, velocityIterations: 8, positionIterations: 12 }); // increase simulation quality
     this.engine.world.gravity = { x: 0, y: 0 };
     this.pockets = POCKET_PROPERTIES.POSITIONS.map(pos => new Pocket(this.engine, pos));
     this.balls = [
