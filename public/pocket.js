@@ -8,16 +8,19 @@ class Pocket {
     Events.on(engine, 'collisionStart', ({ pairs }) => {
       this.balls = this.balls.concat(pairs.reduce((collisions, { bodyA, bodyB }) => {
         if (bodyA.id !== this.id && bodyB.id !== this.id) return collisions;
-        return collisions.concat(Ball.instances[bodyA.id] || Ball.instances[bodyB.id]);
+        const ball = Ball.instances[bodyA.id] || Ball.instances[bodyB.id];
+        setTimeout(() => ball.sink(), 100);
+        return collisions.concat(ball);
       }, []));
     });
-    Events.on(engine, 'collisionEnd', ({ pairs }) => {
-      pairs.forEach(({ bodyA, bodyB }) => {
-        if (bodyA.id !== this.id && bodyB.id !== this.id) return;
-        const ball = Ball.instances[bodyA.id] || Ball.instances[bodyB.id];
-        this.balls.splice(this.balls.indexOf(ball, 1));
-      });
-    });
+    // Events.on(engine, 'collisionEnd', ({ pairs }) => {
+    //   pairs.forEach(({ bodyA, bodyB }) => {
+    //     if (bodyA.id !== this.id && bodyB.id !== this.id) return;
+    //     const ball = Ball.instances[bodyA.id] || Ball.instances[bodyB.id];
+    //     ball.cancelSink();
+    //     this.balls.splice(this.balls.indexOf(ball, 1));
+    //   });
+    // });
   }
 
   static renderAll() {

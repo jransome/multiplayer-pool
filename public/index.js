@@ -13,8 +13,8 @@ socket.on('gameStateUpdated', (newState) => {
 });
 
 const renderCushion = (vertices) => {
-  fill(180);
-  stroke(180);
+  fill(0, 0, 60);
+  stroke(0, 0, 60);
   strokeWeight(1);
   beginShape();
   vertices.forEach(v => vertex(v.x, v.y));
@@ -33,10 +33,11 @@ const renderTargetingLine = (cuePosition, directionVector) => {
 
 function setup() {
   canvasElement = createCanvas(TABLE_LENGTH, TABLE_WIDTH).id('canvas').parent('game');
+  colorMode(HSB);
 }
 
 function draw() {
-  background(30, 50, 200);
+  background(233, 85, 78);
   const { targetVector, balls, cushions } = gameState;
   if (targetVector) renderTargetingLine(balls[0].position, targetVector);
   Pocket.renderAll();

@@ -6,6 +6,8 @@ class Ball {
     this.startingPosition = position;
     this.body = Bodies.circle(position.x, position.y, BALL_PROPERTIES.RADIUS, BALL_PROPERTIES.ENGINE);
     this.id = this.body.id;
+    this.isSinking = false;
+    this.colour = [...BALL_PROPERTIES.COLOUR_MAP[type]];
     World.add(engine.world, this.body);
     Events.on(engine, 'beforeUpdate', this._beforeUpdate.bind(this));
     Ball.instances[this.id] = this;
@@ -23,6 +25,20 @@ class Ball {
     return this.body.position;
   }
 
+  sink() {
+    this.isSinking = true;
+    setTimeout(() => {
+      Body.set(this.body, 'isSensor', true);
+      Body.set(this.body, 'isStatic', true);
+    }, 300); // TODO: link to engine delta time
+  }
+
+  // cancelSink() {
+  //   this.isSinking = false;
+  //   this.colour = [...BALL_PROPERTIES.COLOUR_MAP[this.type]];
+  //   Body.set(this.body, 'isSensor', false);
+  // }
+
   resetPosition() {
     Body.setVelocity(this.body, { x: 0, y: 0 });
     Body.setPosition(this.body, this.startingPosition);
@@ -34,12 +50,17 @@ class Ball {
 
   getState() {
     return {
-      colour: BALL_PROPERTIES.COLOUR_MAP[this.type],
+      colour: this.colour,
       position: this.body.position,
     }
   }
 
   _beforeUpdate() { // executes before engine tick
+    if (this.isSinking && this.colour[2] > 10) {
+      this.colour[2] -= 5;
+      return;
+    }
+
     // dampen velocity
     const { CONSTANT_FRICTION_MULTIPLYER, DYNAMIC_FRICTION_MULTIPLYER, MAX_ANGULAR_SPEED } = BALL_PROPERTIES;
     const normalisedInverse = Vector.mult(Vector.normalise(this.body.velocity), -1);
