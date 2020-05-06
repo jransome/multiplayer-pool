@@ -18,7 +18,7 @@ const games = {};
 socketServer.sockets.on('connect', (socket) => {
   let gameInstance = null;
 
-  socket.on('hosting', (ack) => {
+  socket.on('hosting', (playerName, ack) => {
     const game = new Game(socket, socketServer);
     gameInstance = game;
     games[game.id] = game;
@@ -32,7 +32,7 @@ socketServer.sockets.on('connect', (socket) => {
     });
   });
 
-  socket.on('joinAttempt', (gameId, ack) => {
+  socket.on('joinAttempt', ({ gameId, playerName }, ack) => {
     const game = games[gameId];
     if (!game || game.ended) return ack(false);
     

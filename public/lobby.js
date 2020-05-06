@@ -30,8 +30,7 @@ function initialiseLobby(socket, hostGame) {
     socket.emit('hosting', nameInput.value, (gameId) => {
       console.log('started game', gameId);
       idLabel.innerText = `Game ID: ${gameId}`;
-      hostButton.disabled = true;
-      joinButton.disabled = true;
+      lobbyControls.style.display = 'none';
     });
     hostGame();
   });
@@ -41,13 +40,12 @@ function initialiseLobby(socket, hostGame) {
       console.log('Invalid game Id entered');
       return;
     }
-    socket.emit('joinAttempt', { gameId: +idInput.value, name: nameInput.value }, (isSuccessful) => {
+    socket.emit('joinAttempt', { gameId: +idInput.value, playerName: nameInput.value }, (isSuccessful) => {
       if (!isSuccessful) {
         console.log('failed to join game');
       } else {
         console.log('joining game!');
-        hostButton.disabled = true;
-        joinButton.disabled = true;
+        lobbyControls.style.display = 'none';
       }
     });
   }
