@@ -2,6 +2,7 @@ const path = require('path');
 const express = require('express');
 const socket = require('socket.io');
 const Game = require('./src/game');
+// const database = require('./database');
 
 const PORT = process.env.PORT || 3001;
 const app = express();
