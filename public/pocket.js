@@ -12,7 +12,7 @@ class Pocket {
         const ball = Ball.instances[bodyA.id] || Ball.instances[bodyB.id];
         setTimeout(() => {
           if (this.balls.indexOf(ball) === -1) return;
-          ball.sink()
+          ball.sink();
         }, 100);
         return collisions.concat(ball);
       }, []));
@@ -22,6 +22,7 @@ class Pocket {
       pairs.forEach(({ bodyA, bodyB }) => {
         if (bodyA.id !== this.id && bodyB.id !== this.id) return;
         const ball = Ball.instances[bodyA.id] || Ball.instances[bodyB.id];
+        if (ball.isStatic) return;
         ball.cancelSink();
         this.balls.splice(this.balls.indexOf(ball, 1));
       });
@@ -36,8 +37,8 @@ class Pocket {
       circle(pos.x, pos.y, POCKET_PROPERTIES.VISIBLE_RADIUS * 2);
 
       // debug colliders
-      // fill(0, 255, 0);
-      // stroke(0, 255, 0);
+      // fill(30, 100, 100);
+      // stroke(30, 100, 100);
       // strokeWeight(1);
       // circle(pos.x, pos.y, POCKET_PROPERTIES.COLLISION_RADIUS * 2);
     });

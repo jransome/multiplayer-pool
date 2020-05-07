@@ -11,6 +11,13 @@ class Ball {
     World.add(engine.world, this.body);
     Events.on(engine, 'beforeUpdate', this._beforeUpdate.bind(this));
     Ball.instances[this.id] = this;
+
+    if (this.type === CUE) { // hotfix for cue ball. TODO: do this properly
+      window.addEventListener('keydown', (event) => {
+        if (event.key !== 'r') return;
+        this.reset();
+      });
+    }
   }
 
   static render(ballState) {
@@ -25,10 +32,18 @@ class Ball {
     return this.body.position;
   }
 
+  get isStatic() {
+    return this.body.isStatic;
+  }
+
   sink() {
     this.isSinking = true;
     setTimeout(() => {
       if (!this.isSinking) return;
+      if (this.type === CUE) {
+        this.reset();
+        return;
+      }
       Body.set(this.body, 'isSensor', true);
       Body.set(this.body, 'isStatic', true);
     }, 300); // TODO: link to engine delta time
@@ -41,9 +56,10 @@ class Ball {
     Body.set(this.body, 'isSensor', false);
   }
 
-  resetPosition() {
+  reset() {
     Body.setVelocity(this.body, { x: 0, y: 0 });
     Body.setPosition(this.body, this.startingPosition);
+    this.cancelSink();
   }
 
   applyForce(vector) {

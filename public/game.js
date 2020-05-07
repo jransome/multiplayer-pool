@@ -45,7 +45,7 @@ class Game {
   }
 
   reset() {
-    this.balls.forEach(b => b.resetPosition());
+    this.balls.forEach(b => b.reset());
   }
 
   _setTargetDirection(targetPosition) {
