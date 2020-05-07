@@ -28,16 +28,18 @@ class Ball {
   sink() {
     this.isSinking = true;
     setTimeout(() => {
+      if (!this.isSinking) return;
       Body.set(this.body, 'isSensor', true);
       Body.set(this.body, 'isStatic', true);
     }, 300); // TODO: link to engine delta time
   }
 
-  // cancelSink() {
-  //   this.isSinking = false;
-  //   this.colour = [...BALL_PROPERTIES.COLOUR_MAP[this.type]];
-  //   Body.set(this.body, 'isSensor', false);
-  // }
+  cancelSink() {
+    this.isSinking = false;
+    this.colour = [...BALL_PROPERTIES.COLOUR_MAP[this.type]];
+    Body.set(this.body, 'isStatic', false);
+    Body.set(this.body, 'isSensor', false);
+  }
 
   resetPosition() {
     Body.setVelocity(this.body, { x: 0, y: 0 });
