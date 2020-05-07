@@ -13,6 +13,33 @@ const socketServer = socket(server);
 
 let idCounter = 0;
 
+class Game {
+  static idCounter = 0;
+
+  constructor(hostSocket){
+    this.id =`game-${++idCounter}`;
+    this.startTime = Date.UTC();
+  }
+
+  join(socket) {
+    socket.join(this.id);
+
+    socket.on('gameStateUpdated', (data) => {
+      socketServer.to(this.id).emit('gameStateUpdated', data);
+    });
+    socket.on('fireCue', (data) => {
+      socketServer.to(this.id).emit('fireCue', data);
+    });
+    socket.on('setTargetDirection', (data) => {
+      socketServer.to(this.id).emit('setTargetDirection', data);
+    });
+  }
+
+  leave(socket){
+
+  }
+}
+
 const joinGame = (socket, gameId) => {
   socket.join(gameId);
 
