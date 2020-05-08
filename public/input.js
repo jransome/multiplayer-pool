@@ -22,9 +22,13 @@ const registerInputListeners = (socket) => {
     socket.emit('setTargetDirection', calculateCanvasPosition(toElement, { clientX, clientY }));
   });
 
-  window.addEventListener('keydown', (event) => {
+  window.addEventListener('keyup', (event) => {
+    if (event.key === 'r') {
+      socket.emit('resetCue');
+      return;
+    }
+
     const desiredForce = +event.key;
-    if (desiredForce < 0) return;
-    socket.emit('fireCue', desiredForce);
+    if (desiredForce > 0) socket.emit('fireCue', desiredForce);
   });
 }

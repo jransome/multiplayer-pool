@@ -22,6 +22,9 @@ class Game {
     socket.on('gameStateUpdated', (data) => {
       this._broadcast('gameStateUpdated', data);
     });
+    socket.on('resetCue', (data) => {
+      this._broadcast('resetCue', data);
+    });
     socket.on('fireCue', (data) => {
       this._broadcast('fireCue', data);
     });

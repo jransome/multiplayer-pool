@@ -36,6 +36,7 @@ class Game {
     ];
     World.add(this.engine.world, cushions);
     Events.on(this.engine, 'afterUpdate', this._broadcastGameState.bind(this));
+    socket.on('resetCue', () => this.balls[0].reset());
     socket.on('fireCue', this._fireCueBall.bind(this));
     socket.on('setTargetDirection', this._setTargetDirection.bind(this));
   }

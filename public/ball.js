@@ -11,13 +11,6 @@ class Ball {
     World.add(engine.world, this.body);
     Events.on(engine, 'beforeUpdate', this._beforeUpdate.bind(this));
     Ball.instances[this.id] = this;
-
-    if (this.type === CUE) { // hotfix for cue ball. TODO: do this properly
-      window.addEventListener('keydown', (event) => {
-        if (event.key !== 'r') return;
-        this.reset();
-      });
-    }
   }
 
   static render(ballState) {

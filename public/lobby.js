@@ -31,7 +31,7 @@ function initialiseLobby(socket, hostGame) {
   }
 
   joinButton.addEventListener('click', joinGame);
-  idInput.addEventListener('keydown', (event) => {
+  idInput.addEventListener('keyup', (event) => {
     if (event.key === 'Enter') joinGame();
   });
 }
