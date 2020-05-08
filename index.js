@@ -2,7 +2,7 @@ const path = require('path');
 const express = require('express');
 const socket = require('socket.io');
 const Game = require('./src/game');
-// const database = require('./database');
+// const database = require('./src/database');
 
 const PORT = process.env.PORT || 3001;
 const app = express();
@@ -19,6 +19,7 @@ socketServer.sockets.on('connect', (socket) => {
   let gameInstance = null;
 
   socket.on('hosting', (playerName, ack) => {
+    Player.createIfNotExists(playerName);
     const game = new Game(socket, socketServer);
     gameInstance = game;
     games[game.id] = game;
