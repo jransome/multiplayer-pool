@@ -11,17 +11,24 @@ const server = app.listen(PORT, () => console.log('Server running'));
 
 const socketServer = socket(server);
 
-let idCounter = 0;
-
 class Game {
   static idCounter = 0;
 
-  constructor(hostSocket){
-    this.id =`game-${++idCounter}`;
-    this.startTime = Date.UTC();
+  constructor(hostSocket) {
+    this.id = ++Game.idCounter;
+    this.startTime = null;
+    this.duration = null;
+    this.hostPlayer = hostSocket;
+    this.guestPlayer = null;
+    this.join(hostSocket);
+    this.ended = false;
   }
 
   join(socket) {
+    if (!this.guestPlayer) {
+      this.guestPlayer = socket;
+      this.startTime = new Date().toISOString()
+    }
     socket.join(this.id);
 
     socket.on('gameStateUpdated', (data) => {
@@ -35,42 +42,48 @@ class Game {
     });
   }
 
-  leave(socket){
+  leave(socket) {
+    socket.leave(this.id);
+    if (socket === this.hostPlayer || socket === this.guestPlayer) this.end();
+  }
 
+  end() {
+    this.duration = Date.now() - new Date(this.startTime);
+    this.ended = true;
+    console.log(this.id, 'ended. Duration:', this.duration);
   }
 }
 
-const joinGame = (socket, gameId) => {
-  socket.join(gameId);
 
-  socket.on('gameStateUpdated', (state) => {
-    socketServer.to(gameId).emit('gameStateUpdated', state);
-  });
-  socket.on('fireCue', (state) => {
-    socketServer.to(gameId).emit('fireCue', state);
-  });
-  socket.on('setTargetDirection', (state) => {
-    socketServer.to(gameId).emit('setTargetDirection', state);
-  });
-}
+
+const games = {};
 
 socketServer.sockets.on('connect', (socket) => {
   console.log('new client connected, ID:', socket.id);
+  let gameInstance;
 
   socket.on('hosting', (ack) => {
-    const gameId = ++idCounter;
-    joinGame(socket, `game-${gameId}`);
-    ack(gameId);
-  });
+    const game = new Game(socket);
+    games[game.id] = game;
+    ack(game.id);
 
+    gameInstance = game;
+  });
+  
   socket.on('joinAttempt', (gameId, ack) => {
-    if (gameId > 0 && gameId <= idCounter) {
-      joinGame(socket, `game-${gameId}`);
-      ack(true);
-    } else ack(false);
+    const game = games[gameId];
+    if (!game || game.ended) return ack(false);
+    
+    game.join(socket);
+    ack(true);
+    
+    gameInstance = game;
   });
 
   socket.on('disconnect', () => {
+    if (!gameInstance) return;
+    
+    game.leave(socket);
     console.log('client disconnected, ID:', socket.id);
   });
 });
