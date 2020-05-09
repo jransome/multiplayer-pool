@@ -12,26 +12,59 @@ const playerCollection = db.collection('players');
 
 // playerCollection.get().then(d => console.log('got data!', d.docs[0].data()))
 
-const createIfNotExists = async (name) => {
-  const playerDocumentReference = await playerCollection.where('name', '==', name).limit(1).get().then(({ docs }) => docs[0]);
-  if (playerDocumentReference) return playerDocumentReference;
+class Player {
+  static async createIfNotExists(name) {
+    const playerDocumentReference = await playerCollection
+      .where('name', '==', name)
+      .limit(1)
+      .get()
+      .then(({ docs: [doc] }) => doc && doc.ref);
+    if (playerDocumentReference) return new Player(playerDocumentReference);
 
-  return playerCollection.add({
-    name,
-    gamesStarted: 0,
-    gamesAbandoned: 0,
-    gamesWon: 0,
-    timePlayedSecs: 0,
-  });
+    return new Player(await playerCollection.add({
+      name,
+      gamesStarted: 0,
+      gamesAbandoned: 0,
+      gamesWon: 0,
+      timePlayedSecs: 0,
+    }));
+  }
+
+  constructor(documentReference) {
+    this.documentReference = documentReference;
+    this.loginTime = Date.now();
+  }
+
+  async logout() {
+    const sessionLengthSecs = Math.floor((Date.now() - this.loginTime) / 1000);
+    this.documentReference.update({
+      timePlayedSecs: admin.firestore.FieldValue.increment(sessionLengthSecs),
+    });
+  }
 }
 
+//  Player.createIfNotExists('Picard').then(j => {
+// console.log(j)
+//    setTimeout(() => j.logout(), 8000);
+//  })
 
 
-// createIfNotExists('Kirk').then(record => console.log(record));
-createIfNotExists('Picard').then(record => console.log(record));
+// const createIfNotExists = async (playerName) => {
+//   const playerDocumentReference = playerCollection.doc(playerName);
+//   if ((await playerDocumentReference.get()).exists) return playerDocumentReference;
 
-// playerCollection.
+//   await playerDocumentReference.create({
+//     name: playerName,
+//     gamesStarted: 0,
+//     gamesAbandoned: 0,
+//     gamesWon: 0,
+//     timePlayedSecs: 0,
+//   }).catch(e => console.error('Error on player document creation:', e));
+//   return playerDocumentReference;
+// }
+
+
 
 module.exports = {
-
+  Player,
 };
