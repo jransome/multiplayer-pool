@@ -16,9 +16,8 @@ function initialiseLobby(socket, hostGame) {
   let playerName = null;
 
   const login = () => {
-    if (!nameInput.value) return;
+    if (!nameInput.value || nameInput.value.length < 3) return;
     playerName = DOMPurify.sanitize(nameInput.value);
-    console.log(playerName)
     nameLabel.textContent = `Welcome ${playerName}`;
     lobbyControls.style.display = 'initial';
     nameControls.style.display = 'none';

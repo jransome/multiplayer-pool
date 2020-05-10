@@ -30,9 +30,9 @@ class Player {
     return this.documentReference.path;
   }
 
-  async logout() {
+  logout() {
     const sessionLengthSecs = Math.floor((Date.now() - this.loginTime) / 1000);
-    await this.documentReference.update({
+    this.documentReference.update({
       timePlayedSecs: helpers.incrementField(sessionLengthSecs),
     }).catch(e => console.error('Error updating db on player logout for player', this.name, e));
   }

@@ -10,7 +10,7 @@ class Game {
     this.hostPlayer = hostPlayer;
     this.guestPlayer = null;
     this.startTime = new Date();
-    this.inProgress = true;
+    this.ended = false;
     this.join(this.hostPlayer, false);
     this.hostPlayer.socket.on('gameStateUpdated', (data) => {
       this._broadcast('gameStateUpdated', data);
@@ -19,7 +19,7 @@ class Game {
   }
 
   join(player, isGuestPlayer = true) {
-    if (!this.inProgress) return;
+    if (this.ended) return;
     if (isGuestPlayer && !this.guestPlayer) {
       this.guestPlayer = player;
     }
@@ -42,8 +42,8 @@ class Game {
   }
 
   async end() {
-    if (!this.inProgress) return;
-    this.inProgress = false;
+    if (this.ended) return;
+    this.ended = true;
 
     const durationSecs = Math.floor((Date.now() - this.startTime) / 1000);
     await GameCollection.add({
