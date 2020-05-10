@@ -17,10 +17,12 @@ function initialiseLobby(socket, hostGame) {
 
   const login = () => {
     if (!nameInput.value) return;
-    playerName = DOMPurify.sanitize(!nameInput.value);
-    nameLabel.textContent = `Welcome ${nameInput.value}`;
+    playerName = DOMPurify.sanitize(nameInput.value);
+    console.log(playerName)
+    nameLabel.textContent = `Welcome ${playerName}`;
     lobbyControls.style.display = 'initial';
     nameControls.style.display = 'none';
+    socket.emit('login', playerName);
   }
 
   loginButton.addEventListener('click', login);
@@ -30,7 +32,7 @@ function initialiseLobby(socket, hostGame) {
   });
 
   hostButton.addEventListener('click', () => {
-    socket.emit('hosting', playerName, (gameId) => {
+    socket.emit('hosting', (gameId) => {
       console.log('started game', gameId);
       idLabel.textContent = `Game ID: ${gameId}`;
       lobbyControls.style.display = 'none';
@@ -43,7 +45,7 @@ function initialiseLobby(socket, hostGame) {
       console.log('Invalid game Id entered');
       return;
     }
-    socket.emit('joinAttempt', { gameId: +idInput.value, playerName }, (isSuccessful) => {
+    socket.emit('joinAttempt', +idInput.value, (isSuccessful) => {
       if (!isSuccessful) {
         console.log('failed to join game');
       } else {

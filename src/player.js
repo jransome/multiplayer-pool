@@ -7,7 +7,7 @@ class Player {
       .limit(1)
       .get()
       .then(({ docs: [doc] }) => doc && doc.ref);
-    if (playerDocumentReference) return new Player(playerDocumentReference, socket);
+    if (playerDocumentReference) return new Player(playerDocumentReference, name, socket);
 
     return new Player(await PlayerCollection.add({
       name,
@@ -15,11 +15,12 @@ class Player {
       gamesAbandoned: 0,
       gamesWon: 0,
       timePlayedSecs: 0,
-    }), socket);
+    }), name, socket);
   }
 
-  constructor(documentReference, socket) {
+  constructor(documentReference, name, socket) {
     this.documentReference = documentReference;
+    this.name = name;
     this.socket = socket;
     this.loginTime = Date.now();
   }

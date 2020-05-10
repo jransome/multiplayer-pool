@@ -1,27 +1,21 @@
 const { GameCollection } = require('./database');
 
 class Game {
-  static instances = [];
+  static instances = {};
   static instanceCounter = 0;
 
   constructor(hostPlayer, socketServer) {
-    this.socketRoomId = ++Game.instanceCounter;
     this.socketServer = socketServer;
+    this.socketRoomId = ++Game.instanceCounter;
     this.hostPlayer = hostPlayer;
     this.guestPlayer = null;
-    this.startTime = null;
-    this.inProgress = false;
-    Game.instances.push(this);
-  }
-
-  start() {
+    this.startTime = new Date();
+    this.inProgress = true;
     this.join(this.hostPlayer, false);
     this.hostPlayer.socket.on('gameStateUpdated', (data) => {
       this._broadcast('gameStateUpdated', data);
     });
-
-    this.startTime = new Date();
-    this.inProgress = true;
+    Game.instances[this.socketRoomId] = this;
   }
 
   join(player, isGuestPlayer = true) {
