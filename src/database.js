@@ -36,6 +36,9 @@ const db = admin.firestore();
 
 
 module.exports = {
-  gameCollection: db.collection('games'),
-  playerCollection: db.collection('players'),
+  GameCollection: db.collection('games'),
+  PlayerCollection: db.collection('players'),
+  helpers: {
+    incrementField: (amount) => admin.firestore.FieldValue.increment(amount),
+  },
 };
