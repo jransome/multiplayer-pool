@@ -13,9 +13,9 @@ class Player {
     return new Player(await PlayerCollection.add({
       name,
       gamesStarted: 0,
-      gamesAbandoned: 0,
       gamesWon: 0,
-      timePlayedSecs: 0,
+      gamesLost: 0,
+      timeLoggedOnSecs: 0,
     }).catch(e => console.error('Error creating new player', name, e)), name, socket);
   }
 
@@ -30,10 +30,28 @@ class Player {
     return this.documentReference.path;
   }
 
+  registerStartedGame() {
+    return this.documentReference.update({
+      gamesStarted: helpers.incrementField(1),
+    }).catch(e => console.error('Error updating db on player start for player', this.name, e));
+  }
+
+  registerWin() {
+    return this.documentReference.update({
+      gamesWon: helpers.incrementField(1),
+    }).catch(e => console.error('Error updating db on player win for player', this.name, e));
+  }
+
+  registerLoss() {
+    return this.documentReference.update({
+      gamesLost: helpers.incrementField(1),
+    }).catch(e => console.error('Error updating db on player loss for player', this.name, e));
+  }
+
   logout() {
     const sessionLengthSecs = Math.floor((Date.now() - this.loginTime) / 1000);
     this.documentReference.update({
-      timePlayedSecs: helpers.incrementField(sessionLengthSecs),
+      timeLoggedOnSecs: helpers.incrementField(sessionLengthSecs),
     }).catch(e => console.error('Error updating db on player logout for player', this.name, e));
   }
 }

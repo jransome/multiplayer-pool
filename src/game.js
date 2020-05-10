@@ -13,7 +13,7 @@ class Game {
     this.ended = false;
     this.join(this.hostPlayer, false);
     this.hostPlayer.socket.on('gameStateUpdated', (data) => {
-      this._broadcast('gameStateUpdated', data);
+      broadcastToRoom(this.socketRoomId, 'gameStateUpdated', data);
     });
     Game.instances[this.socketRoomId] = this;
   }
@@ -23,16 +23,17 @@ class Game {
     if (isGuestPlayer && !this.guestPlayer) {
       this.guestPlayer = player;
     }
+    player.registerStartedGame();
     player.socket.join(this.socketRoomId);
 
     player.socket.on('resetCue', (data) => {
-      this._broadcast('resetCue', data);
+      broadcastToRoom(this.socketRoomId, 'resetCue', data);
     });
     player.socket.on('fireCue', (data) => {
-      this._broadcast('fireCue', data);
+      broadcastToRoom(this.socketRoomId, 'fireCue', data);
     });
     player.socket.on('setTargetDirection', (data) => {
-      this._broadcast('setTargetDirection', data);
+      broadcastToRoom(this.socketRoomId, 'setTargetDirection', data);
     });
   }
 
@@ -46,20 +47,20 @@ class Game {
     this.ended = true;
 
     const durationSecs = Math.floor((Date.now() - this.startTime) / 1000);
-    await GameCollection.add({
-      socketRoomId: this.socketRoomId,
-      startTime: this.startTime.toISOString(),
-      hostPlayer: this.hostPlayer.reference,
-      guestPlayer: this.guestPlayer && this.guestPlayer.reference,
-      durationSecs,
-      winner: this.hostPlayer.reference, // TODO
-    }).catch(e => console.error('Error adding new game to db:', e));
+    await Promise.all([
+      this.hostPlayer.registerWin(), // TODO
+      this.guestPlayer ? this.guestPlayer.registerLoss() : Promise.resolve(), // TODO
+      GameCollection.add({
+        socketRoomId: this.socketRoomId,
+        startTime: this.startTime.toISOString(),
+        hostPlayer: this.hostPlayer.reference,
+        guestPlayer: this.guestPlayer && this.guestPlayer.reference,
+        durationSecs,
+        winner: this.hostPlayer.reference, // TODO
+      }).catch(e => console.error('Error adding new game to db:', e)),
+    ]);
 
-    console.log('Game', this.socketRoomId, 'ended. Duration:', durationSecs, 'seconds');
-  }
-
-  _broadcast(eventName, data) {
-    broadcastToRoom(this.socketRoomId, eventName, data);
+    console.log(`Game #${this.socketRoomId} ended after ${durationSecs} seconds.`);
   }
 }
 
