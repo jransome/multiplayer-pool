@@ -2,7 +2,7 @@ const path = require('path');
 const express = require('express');
 const socket = require('socket.io');
 const Game = require('./src/game');
-const { Player } = require('./src/database');
+const Player = require('./src/player');
 
 const PORT = process.env.PORT || 3001;
 const app = express();
@@ -23,7 +23,7 @@ socketServer.sockets.on('connect', (socket) => {
 
   socket.on('hosting', (playerName, ack) => {
     session.playerInstance = Player.createIfNotExists(playerName);
-    const game = new Game(socket, socketServer);
+    const game = new Game(session.playerInstance, socket, socketServer);
     session.gameInstance = game;
     games[game.id] = game;
     ack(game.id);
@@ -39,7 +39,7 @@ socketServer.sockets.on('connect', (socket) => {
   socket.on('joinAttempt', ({ gameId, playerName }, ack) => {
     const game = games[gameId];
     if (!game || game.ended) return ack(false);
-    
+
     session.playerInstance = Player.createIfNotExists(playerName);
     session.gameInstance = game;
     game.join(socket);

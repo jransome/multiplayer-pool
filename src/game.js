@@ -1,3 +1,5 @@
+// const { gameCollection } = require('./database');
+
 class Game {
   static idCounter = 0;
 
