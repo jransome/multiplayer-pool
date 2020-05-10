@@ -6,7 +6,8 @@ class Player {
       .where('name', '==', name)
       .limit(1)
       .get()
-      .then(({ docs: [doc] }) => doc && doc.ref);
+      .then(({ docs: [doc] }) => doc && doc.ref)
+      .catch(e => console.error('Error checking db for player', name, e));
     if (playerDocumentReference) return new Player(playerDocumentReference, name, socket);
 
     return new Player(await PlayerCollection.add({
@@ -15,7 +16,7 @@ class Player {
       gamesAbandoned: 0,
       gamesWon: 0,
       timePlayedSecs: 0,
-    }), name, socket);
+    }).catch(e => console.error('Error creating new player', name, e)), name, socket);
   }
 
   constructor(documentReference, name, socket) {
@@ -33,7 +34,7 @@ class Player {
     const sessionLengthSecs = Math.floor((Date.now() - this.loginTime) / 1000);
     await this.documentReference.update({
       timePlayedSecs: helpers.incrementField(sessionLengthSecs),
-    });
+    }).catch(e => console.error('Error updating db on player logout for player', this.name, e));
   }
 }
 

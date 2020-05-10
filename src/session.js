@@ -1,15 +1,14 @@
 const Game = require('./game');
 
 class Session {
-  constructor(playerInstance, socket, socketServer) {
+  constructor(playerInstance, socket) {
     this.socket = socket;
-    this.socketServer = socketServer;
     this.playerInstance = playerInstance;
     this.gameInstance = null;
   }
 
   hostGame(ack) {
-    this.gameInstance = new Game(this.playerInstance, this.socketServer);
+    this.gameInstance = new Game(this.playerInstance);
     ack(this.gameInstance.socketRoomId);
 
     console.log(`${this.playerInstance.name} (${this.socket.id}) hosted game #${this.gameInstance.socketRoomId}`);

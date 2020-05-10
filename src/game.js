@@ -1,11 +1,11 @@
 const { GameCollection } = require('./database');
+const { broadcastToRoom } = require('./server');
 
 class Game {
   static instances = {};
   static instanceCounter = 0;
 
-  constructor(hostPlayer, socketServer) {
-    this.socketServer = socketServer;
+  constructor(hostPlayer) {
     this.socketRoomId = ++Game.instanceCounter;
     this.hostPlayer = hostPlayer;
     this.guestPlayer = null;
@@ -53,13 +53,13 @@ class Game {
       guestPlayer: this.guestPlayer && this.guestPlayer.reference,
       durationSecs,
       winner: this.hostPlayer.reference, // TODO
-    }).catch(e => console.error('Error on adding new game:', e));
+    }).catch(e => console.error('Error adding new game to db:', e));
 
     console.log('Game', this.socketRoomId, 'ended. Duration:', durationSecs, 'seconds');
   }
 
   _broadcast(eventName, data) {
-    this.socketServer.to(this.socketRoomId).emit(eventName, data);
+    broadcastToRoom(this.socketRoomId, eventName, data);
   }
 }
 
