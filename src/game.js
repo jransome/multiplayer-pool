@@ -1,23 +1,35 @@
-// const { gameCollection } = require('./database');
+const { gameCollection } = require('./database');
 
 class Game {
   static idCounter = 0;
 
-  constructor(hostSocket, socketServer) {
+  constructor(hostPlayer, hostSocket, socketServer) {
     this.socketServer = socketServer;
     this.id = ++Game.idCounter;
     this.startTime = null;
     this.duration = null;
     this.hostPlayer = hostSocket;
     this.guestPlayer = null;
-    this.join(hostSocket, false);
+    this.inProgress = false;
     this.ended = false;
+
+    this.documentReference = null;
+  }
+
+  async start() {
+    this.join(hostSocket, false);
+    this.inProgress = true;
+    this.startTime = new Date().toISOString()
+    this.documentReference = await gameCollection.add({
+      startTime:this.startTime,
+      
+    });
   }
 
   join(socket, isGuestPlayer = true) {
+    if (!this.inProgress) return;
     if (isGuestPlayer && !this.guestPlayer) {
       this.guestPlayer = socket;
-      this.startTime = new Date().toISOString()
     }
     socket.join(this.id);
 
