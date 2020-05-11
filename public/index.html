@@ -7,6 +7,7 @@
   <title>Pool</title>
   <script src="https://unpkg.com/matter-js@0.14.2/build/matter.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/p5@1.0.0/lib/p5.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.0.11/purify.min.js"></script>
   <script src="/socket.io/socket.io.js"></script>
   <script defer src="constants.js"></script>
   <script defer src="lobby.js"></script>
@@ -19,13 +20,28 @@
 
 <body>
   <div id="game"></div>
-  <p id="idLabel"></p>
-  <button id="hostBtn">Host game</button>
-  <p>or join an existing one:</p>
-  <input id="idInput" type="text" placeholder="enter game Id" />
-  <button id="joinBtn">Join game</button>
-  <p>How to play: Click to set direction of shot, then hit a number to indicate shot power. 9 = smash, 1 = veeery light tap</p>
-  <p>Press 'r' to reset the cue ball</p>
+  
+  <h2>Pool From Home!</h2>
+  <h3 id="nameLabel"></h3>
+  <h3 id="idLabel"></h3>
+  <div id="nameControls">
+    <p>Enter your name to start (min 3 characters):</p>
+    <input id="nameInput" type="text" placeholder="my name is..." maxlength="20"/>
+    <button id="loginBtn">That's my name</button>
+  </div>
+
+  <div id="lobbyControls">
+    <button id="hostBtn">Host game</button>
+    <p>===== or join an existing one: =====</p>
+    <input id="idInput" type="text" placeholder="enter game Id" />
+    <button id="joinBtn">Join game</button>
+    <p>How to play: Click to set direction of shot, then hit a number to indicate shot power. 9 = smash, 1 = veeery light tap</p>
+    <p>Press 'r' to reset the cue ball</p>
+  </div>
+
+  <div id="gameControls">
+
+  </div>
 </body>
 
 </html>

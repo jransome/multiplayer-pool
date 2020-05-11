@@ -45,11 +45,17 @@ function draw() {
   balls.forEach(b => Ball.render(b));
 }
 
+let hostedGame = null;
+
 const hostGame = () => {
-  const game = new Game(socket);
-  game.start();
-  window.game = game;
+  if (hostedGame) {
+    hostedGame.reset();
+    return
+  }
+  hostedGame = new Game(socket);
+  hostedGame.start();
+  window.game = hostedGame; // for debug
 }
 
-initialiseLobby(socket, hostGame);
 registerInputListeners(socket);
+const lobby = initialiseLobby(socket, hostGame);

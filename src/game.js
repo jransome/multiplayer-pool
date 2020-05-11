@@ -1,52 +1,66 @@
+const { GameCollection } = require('./database');
+const { broadcastToRoom } = require('./server');
+
 class Game {
-  static idCounter = 0;
+  static instances = {};
+  static instanceCounter = 0;
 
-  constructor(hostSocket, socketServer) {
-    this.socketServer = socketServer;
-    this.id = ++Game.idCounter;
-    this.startTime = null;
-    this.duration = null;
-    this.hostPlayer = hostSocket;
+  constructor(hostPlayer) {
+    this.socketRoomId = ++Game.instanceCounter;
+    this.hostPlayer = hostPlayer;
     this.guestPlayer = null;
-    this.join(hostSocket, false);
+    this.startTime = new Date();
     this.ended = false;
+    this.join(this.hostPlayer, false);
+    this.hostPlayer.socket.on('gameStateUpdated', (data) => {
+      broadcastToRoom(this.socketRoomId, 'gameStateUpdated', data);
+    });
+    Game.instances[this.socketRoomId] = this;
   }
 
-  join(socket, isGuestPlayer = true) {
+  join(player, isGuestPlayer = true) {
+    if (this.ended) return;
     if (isGuestPlayer && !this.guestPlayer) {
-      this.guestPlayer = socket;
-      this.startTime = new Date().toISOString()
+      this.guestPlayer = player;
     }
-    socket.join(this.id);
+    player.registerStartedGame();
+    player.socket.join(this.socketRoomId);
 
-    socket.on('gameStateUpdated', (data) => {
-      this._broadcast('gameStateUpdated', data);
+    player.socket.on('resetCue', (data) => {
+      broadcastToRoom(this.socketRoomId, 'resetCue', data);
     });
-    socket.on('resetCue', (data) => {
-      this._broadcast('resetCue', data);
+    player.socket.on('fireCue', (data) => {
+      broadcastToRoom(this.socketRoomId, 'fireCue', data);
     });
-    socket.on('fireCue', (data) => {
-      this._broadcast('fireCue', data);
-    });
-    socket.on('setTargetDirection', (data) => {
-      this._broadcast('setTargetDirection', data);
+    player.socket.on('setTargetDirection', (data) => {
+      broadcastToRoom(this.socketRoomId, 'setTargetDirection', data);
     });
   }
 
-  leave(socket) {
-    socket.leave(this.id);
-    if (socket === this.hostPlayer) this.end(); // TODO: notify guest if host is gone
-    if (socket === this.guestPlayer) this.guestPlayer = null;
+  leave(player) {
+    player.socket.leave(this.socketRoomId);
+    if (player === this.hostPlayer) this.end(); // TODO: notify guest if host is gone
   }
 
-  end() {
-    this.duration = Date.now() - new Date(this.startTime);
+  async end() {
+    if (this.ended) return;
     this.ended = true;
-    console.log(this.id, 'ended. Duration:', this.duration);
-  }
 
-  _broadcast(eventName, data) {
-    this.socketServer.to(this.id).emit(eventName, data);
+    const durationSecs = Math.floor((Date.now() - this.startTime) / 1000);
+    await Promise.all([
+      this.hostPlayer.registerWin(), // TODO
+      this.guestPlayer ? this.guestPlayer.registerLoss() : Promise.resolve(), // TODO
+      GameCollection.add({
+        socketRoomId: this.socketRoomId,
+        startTime: this.startTime.toISOString(),
+        hostPlayer: this.hostPlayer.reference,
+        guestPlayer: this.guestPlayer && this.guestPlayer.reference,
+        durationSecs,
+        winner: this.hostPlayer.reference, // TODO
+      }).catch(e => console.error('Error adding new game to db:', e)),
+    ]);
+
+    console.log(`Game #${this.socketRoomId} ended after ${durationSecs} seconds.`);
   }
 }
 
