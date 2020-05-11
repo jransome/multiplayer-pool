@@ -1,8 +1,7 @@
 const admin = require('firebase-admin');
-const serviceAccount = require('../firebaseSecrets.json');
 
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
+  credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)),
   databaseURL: 'https://multiplayer-pool.firebaseio.com',
 });
 
