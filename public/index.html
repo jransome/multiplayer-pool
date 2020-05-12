@@ -20,14 +20,15 @@
 
 <body>
   <div id="game"></div>
-  
+
   <h2>Pool From Home!</h2>
-  <h3 id="nameLabel"></h3>
   <h3 id="idLabel"></h3>
+  <h3 id="playerNameListing"></h3>
+
   <div id="nameControls">
     <p>Enter your name to start (min 3 characters):</p>
-    <input id="nameInput" type="text" placeholder="my name is..." maxlength="20"/>
-    <button id="loginBtn">That's my name</button>
+    <input id="nameInput" type="text" placeholder="my name is..." maxlength="20" />
+    <button id="loginBtn">Go</button>
   </div>
 
   <div id="lobbyControls">
@@ -35,12 +36,17 @@
     <p>===== or join an existing one: =====</p>
     <input id="idInput" type="text" placeholder="enter game Id" />
     <button id="joinBtn">Join game</button>
-    <p>How to play: Click to set direction of shot, then hit a number to indicate shot power. 9 = smash, 1 = veeery light tap</p>
-    <p>Press 'r' to reset the cue ball</p>
   </div>
 
   <div id="gameControls">
-
+    <p>How to play: Click to set direction of shot, then hit a number to indicate shot power. 9 = smash, 1 = veeery
+      light tap</p>
+    <p>Press 'r' to reset the cue ball</p>
+    <div id="winControls">
+      <p>==========</p>
+      <p>Did you win? NO CHEATING</p>
+      <button id="iWinBtn">YEAH I WON!</button>
+    </div>
   </div>
 </body>
 

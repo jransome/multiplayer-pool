@@ -36,16 +36,10 @@ class Player {
     }).catch(e => console.error('Error updating db on player start for player', this.name, e));
   }
 
-  registerWin() {
+  registerGameResult(isWinner) {
     return this.documentReference.update({
-      gamesWon: helpers.incrementField(1),
-    }).catch(e => console.error('Error updating db on player win for player', this.name, e));
-  }
-
-  registerLoss() {
-    return this.documentReference.update({
-      gamesLost: helpers.incrementField(1),
-    }).catch(e => console.error('Error updating db on player loss for player', this.name, e));
+      [isWinner ? 'gamesWon' : 'gamesLost']: helpers.incrementField(1),
+    }).catch(e => console.error('Error updating db on player game result for player', this.name, e));
   }
 
   logout() {
