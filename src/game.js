@@ -21,7 +21,7 @@ class Game {
   }
 
   join(player, isGuestPlayer = true) {
-    if (this.ended || !this.playersPresent.has(this.hostPlayer)) return;
+    if (this.ended || (isGuestPlayer && !this.playersPresent.has(this.hostPlayer))) return;
     this.playersPresent.add(player);
     if (isGuestPlayer && !this.guestPlayer) {
       this.guestPlayer = player;
