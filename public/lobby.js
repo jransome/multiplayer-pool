@@ -3,6 +3,8 @@ function initialiseLobby(socket, hostGame) {
   const nameInput = document.querySelector('#nameInput');
   const playerNameListing = document.querySelector('#playerNameListing');
   const loginButton = document.querySelector('#loginBtn');
+  const loginMsg = document.createElement('h3');
+  playerNameListing.appendChild(loginMsg);
 
   const lobbyControls = document.querySelector('#lobbyControls');
   const idLabel = document.querySelector('#idLabel');
@@ -37,13 +39,16 @@ function initialiseLobby(socket, hostGame) {
   const login = () => {
     if (!nameInput.value || nameInput.value.length < 3) return;
     playerName = DOMPurify.sanitize(nameInput.value);
-    const welcomeMsg = document.createElement('h3')
-    welcomeMsg.textContent = `Welcome ${playerName}`;
-    playerNameListing.appendChild(welcomeMsg);
-
-    nameControls.style.display = 'none';
-    lobbyControls.style.display = 'initial';
-    socket.emit('login', playerName);
+    socket.emit('login', playerName, (isSuccessful) => {
+      if(!isSuccessful){
+        loginMsg.textContent = `${playerName} is already logged in!`;
+        return;
+      }
+      
+      loginMsg.textContent = `Welcome ${playerName}`;
+      nameControls.style.display = 'none';
+      lobbyControls.style.display = 'initial';
+    });
   }
   loginButton.addEventListener('click', login);
   nameInput.addEventListener('keyup', (event) => {
