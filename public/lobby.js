@@ -16,8 +16,6 @@ function initialiseLobby(socket, hostGame) {
   const winControls = document.querySelector('#winControls');
   const iWinButton = document.querySelector('#iWinBtn');
 
-  lobbyControls.style.display = 'none';
-  gameControls.style.display = 'none';
   loginButton.style.display = 'none';
   winControls.style.display = 'none';
   iWinButton.addEventListener('click', () => {
@@ -71,14 +69,12 @@ function initialiseLobby(socket, hostGame) {
     });
   });
 
+  const joinFeedback = document.createElement('p');
+  lobbyControls.appendChild(joinFeedback);
   const joinGame = () => {
-    if (isNaN(+idInput.value)) {
-      console.log('Invalid game Id entered');
-      return;
-    }
     socket.emit('joinAttempt', +idInput.value, (isSuccessful) => {
       if (!isSuccessful) {
-        console.log('failed to join game');
+        joinFeedback.textContent = `game ${idInput.value} does not exist or has ended`;
       } else {
         console.log('joining game!');
         lobbyControls.style.display = 'none';
