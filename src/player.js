@@ -1,6 +1,11 @@
 const { PlayerCollection, helpers } = require('./database');
 
 class Player {
+  static instances = new Set();
+  static isAlreadyLoggedIn(name){
+    return [...Player.instances].some(p => p.name === name);
+  }
+
   static async createIfNotExists(name, socket) {
     const playerDocumentReference = await PlayerCollection
       .where('name', '==', name)
@@ -16,6 +21,7 @@ class Player {
       gamesWon: 0,
       gamesLost: 0,
       timeLoggedOnSecs: 0,
+      leaderBoardVisible: false,
     }).catch(e => console.error('Error creating new player', name, e)), name, socket);
   }
 
@@ -24,6 +30,7 @@ class Player {
     this.name = name;
     this.socket = socket;
     this.loginTime = Date.now();
+    Player.instances.add(this);
   }
 
   get reference() {
@@ -43,10 +50,13 @@ class Player {
   }
 
   logout() {
-    const sessionLengthSecs = Math.floor((Date.now() - this.loginTime) / 1000);
+    const timeSinceLoginSecs = Math.floor((Date.now() - this.loginTime) / 1000);
     this.documentReference.update({
-      timeLoggedOnSecs: helpers.incrementField(sessionLengthSecs),
+      timeLoggedOnSecs: helpers.incrementField(timeSinceLoginSecs),
     }).catch(e => console.error('Error updating db on player logout for player', this.name, e));
+
+    Player.instances.delete(this);
+    console.log(`${this.name} logged out. Players still logged in: ${[...Player.instances].map(p => p.name).join(', ')} (${Player.instances.size})`);
   }
 }
 

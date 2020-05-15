@@ -3,6 +3,8 @@ function initialiseLobby(socket, hostGame) {
   const nameInput = document.querySelector('#nameInput');
   const playerNameListing = document.querySelector('#playerNameListing');
   const loginButton = document.querySelector('#loginBtn');
+  const loginMsg = document.createElement('h3');
+  playerNameListing.appendChild(loginMsg);
 
   const lobbyControls = document.querySelector('#lobbyControls');
   const idLabel = document.querySelector('#idLabel');
@@ -14,8 +16,6 @@ function initialiseLobby(socket, hostGame) {
   const winControls = document.querySelector('#winControls');
   const iWinButton = document.querySelector('#iWinBtn');
 
-  lobbyControls.style.display = 'none';
-  gameControls.style.display = 'none';
   loginButton.style.display = 'none';
   winControls.style.display = 'none';
   iWinButton.addEventListener('click', () => {
@@ -37,13 +37,16 @@ function initialiseLobby(socket, hostGame) {
   const login = () => {
     if (!nameInput.value || nameInput.value.length < 3) return;
     playerName = DOMPurify.sanitize(nameInput.value);
-    const welcomeMsg = document.createElement('h3')
-    welcomeMsg.textContent = `Welcome ${playerName}`;
-    playerNameListing.appendChild(welcomeMsg);
-
-    nameControls.style.display = 'none';
-    lobbyControls.style.display = 'initial';
-    socket.emit('login', playerName);
+    socket.emit('login', playerName, (isSuccessful) => {
+      if(!isSuccessful){
+        loginMsg.textContent = `${playerName} is already logged in!`;
+        return;
+      }
+      
+      loginMsg.textContent = `Welcome ${playerName}`;
+      nameControls.style.display = 'none';
+      lobbyControls.style.display = 'initial';
+    });
   }
   loginButton.addEventListener('click', login);
   nameInput.addEventListener('keyup', (event) => {
@@ -66,14 +69,12 @@ function initialiseLobby(socket, hostGame) {
     });
   });
 
+  const joinFeedback = document.createElement('p');
+  lobbyControls.appendChild(joinFeedback);
   const joinGame = () => {
-    if (isNaN(+idInput.value)) {
-      console.log('Invalid game Id entered');
-      return;
-    }
     socket.emit('joinAttempt', +idInput.value, (isSuccessful) => {
       if (!isSuccessful) {
-        console.log('failed to join game');
+        joinFeedback.textContent = `game ${idInput.value} does not exist or has ended`;
       } else {
         console.log('joining game!');
         lobbyControls.style.display = 'none';
