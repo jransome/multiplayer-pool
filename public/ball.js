@@ -29,6 +29,14 @@ class Ball {
     return this.body.isStatic;
   }
 
+  onCollisionStart(otherBody) {
+    // implement some rule logic
+  }
+  
+  onCollisionEnd(otherBody) {
+    // implement some rule logic
+  }
+
   sink() {
     this.isSinking = true;
     setTimeout(() => {

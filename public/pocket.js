@@ -1,32 +1,13 @@
 class Pocket {
+  static instances = {};
+
   constructor(engine, position) {
     this.body = Bodies.circle(position.x, position.y, POCKET_PROPERTIES.COLLISION_RADIUS, POCKET_PROPERTIES.ENGINE);
     this.id = this.body.id;
-    this.balls = [];
+    this.balls = new Set();
+    Pocket.instances[this.id] = this;
     World.add(engine.world, this.body);
     Events.on(engine, 'beforeUpdate', this._beforeUpdate.bind(this));
-
-    Events.on(engine, 'collisionStart', ({ pairs }) => {
-      this.balls = this.balls.concat(pairs.reduce((collisions, { bodyA, bodyB }) => {
-        if (bodyA.id !== this.id && bodyB.id !== this.id) return collisions;
-        const ball = Ball.instances[bodyA.id] || Ball.instances[bodyB.id];
-        setTimeout(() => {
-          if (this.balls.indexOf(ball) === -1) return;
-          ball.sink();
-        }, 100);
-        return collisions.concat(ball);
-      }, []));
-    });
-
-    Events.on(engine, 'collisionEnd', ({ pairs }) => {
-      pairs.forEach(({ bodyA, bodyB }) => {
-        if (bodyA.id !== this.id && bodyB.id !== this.id) return;
-        const ball = Ball.instances[bodyA.id] || Ball.instances[bodyB.id];
-        if (ball.isStatic) return;
-        ball.cancelSink();
-        this.balls.splice(this.balls.indexOf(ball, 1));
-      });
-    });
   }
 
   static renderAll() {
@@ -44,8 +25,27 @@ class Pocket {
     });
   }
 
+  onCollisionStart(otherBody) {
+    const ball = Ball.instances[otherBody.id];
+    if (!ball) return;
+
+    this.balls.add(ball);
+    setTimeout(() => {
+      if (this.balls.has(ball)) ball.sink();
+    }, 200);
+  }
+
+  onCollisionEnd(otherBody) {
+    const ball = Ball.instances[otherBody.id];
+    if (!ball) return;
+  
+    if (ball.isStatic) return; // already sunk
+    ball.cancelSink();
+    this.balls.delete(ball);
+  }
+
   _beforeUpdate() {
-    if (!this.balls.length) return;
+    if (!this.balls.size) return;
     this.balls.forEach((b) => {
       const attractionVector = Vector.normalise(Vector.sub(this.body.position, b.position));
       b.applyForce(Vector.mult(attractionVector, 50));

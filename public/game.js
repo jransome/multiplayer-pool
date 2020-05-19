@@ -1,7 +1,6 @@
 const { Engine, Events, Render, Resolver, World, Body, Bodies, Mouse, MouseConstraint, Vector } = Matter;
 Resolver._restingThresh = 0.01; // Reduce velocity threshold required for engine to calculate ball bounces
 
-
 // TODO: extract to another file
 const cushionProperties = {
   isStatic: true,
@@ -29,6 +28,7 @@ class Game {
     this.targetVector = null;
     this.engine = Engine.create({ constraintIterations: 4, velocityIterations: 8, positionIterations: 12 }); // increase simulation quality
     this.engine.world.gravity = { x: 0, y: 0 };
+    initCollisionManager(this.engine)
     this.pockets = POCKET_PROPERTIES.POSITIONS.map(pos => new Pocket(this.engine, pos));
     this.balls = [
       new Ball(this.engine, CUE, { x: TABLE_LENGTH * 0.2, y: TABLE_WIDTH / 2 }),
