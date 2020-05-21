@@ -25,6 +25,12 @@ class Player {
     }).catch(e => console.error('Error creating new player', name, e)), name, socket);
   }
 
+  static onCollectionUpdated(callback) {
+    PlayerCollection.onSnapshot((querySnapshot) => {
+      callback(querySnapshot.docChanges().map(change => change.doc.data()));
+    });
+  }
+
   constructor(documentReference, name, socket) {
     this.documentReference = documentReference;
     this.name = name;
@@ -33,8 +39,8 @@ class Player {
     Player.instances.add(this);
   }
 
-  get reference() {
-    return this.documentReference.path;
+  get id() {
+    return this.documentReference.id;
   }
 
   registerGameResult(winningPlayer, batch) {
