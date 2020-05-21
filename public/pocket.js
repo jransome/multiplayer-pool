@@ -25,20 +25,22 @@ class Pocket {
     });
   }
 
+  get position() {
+    return this.body.position;
+  }
+
   onCollisionStart(otherBody) {
     const ball = Ball.instances[otherBody.id];
     if (!ball) return;
 
     this.balls.add(ball);
-    setTimeout(() => {
-      if (this.balls.has(ball)) ball.sink();
-    }, 200);
+    ball.capture(this);
   }
 
   onCollisionEnd(otherBody) {
     const ball = Ball.instances[otherBody.id];
     if (!ball) return;
-  
+
     if (ball.isStatic) return; // already sunk
     ball.cancelSink();
     this.balls.delete(ball);

@@ -7,6 +7,8 @@ class Ball {
     this.body = Bodies.circle(position.x, position.y, BALL_PROPERTIES.RADIUS, BALL_PROPERTIES.ENGINE);
     this.id = this.body.id;
     this.isSinking = false;
+    this.sinkProgress = 0;
+    this.pocket = null;
     this.colour = [...BALL_PROPERTIES.COLOUR_MAP[type]];
     World.add(engine.world, this.body);
     Events.on(engine, 'beforeUpdate', this._beforeUpdate.bind(this));
@@ -32,26 +34,29 @@ class Ball {
   onCollisionStart(otherBody) {
     // implement some rule logic
   }
-  
+
   onCollisionEnd(otherBody) {
     // implement some rule logic
   }
 
-  sink() {
-    this.isSinking = true;
-    setTimeout(() => {
-      if (!this.isSinking) return;
-      if (this.type === CUE) {
-        this.reset();
-        return;
-      }
-      Body.set(this.body, 'isSensor', true);
-      Body.set(this.body, 'isStatic', true);
-    }, 300); // TODO: link to engine delta time
+  capture(pocket) {
+    this.pocket = pocket;
   }
 
+  sink() {
+    if (!this.isSinking) return;
+    if (this.type === CUE) {
+      this.reset();
+      return;
+    }
+    Body.set(this.body, 'isSensor', true);
+    Body.set(this.body, 'isStatic', true);
+  }
+  
   cancelSink() {
+    this.pocket = null;
     this.isSinking = false;
+    this.sinkProgress = 0;
     this.colour = [...BALL_PROPERTIES.COLOUR_MAP[this.type]];
     Body.set(this.body, 'isStatic', false);
     Body.set(this.body, 'isSensor', false);
@@ -75,8 +80,14 @@ class Ball {
   }
 
   _beforeUpdate() { // executes before engine tick
-    if (this.isSinking && this.colour[2] > 1) {
-      this.colour[2] -= 5;
+    if (this.pocket && this.sinkProgress < BALL_PROPERTIES.SINK_DURATION_FRAMES) {
+      const distance = Vector.magnitude(Vector.sub(this.position, this.pocket.position));
+      this.isSinking = distance < BALL_PROPERTIES.RADIUS;
+      if (this.isSinking) {
+        this.colour[2] -= 5;
+        this.sinkProgress += 1;
+        if (this.sinkProgress >= BALL_PROPERTIES.SINK_DURATION_FRAMES) this.sink();
+      }
       return;
     }
 

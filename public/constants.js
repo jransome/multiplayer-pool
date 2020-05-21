@@ -36,6 +36,7 @@ const BALL_PROPERTIES = {
     [YELLOW]: [52, 100, 100],
   },
   RADIUS: 15,
+  SINK_DURATION_FRAMES: 30 // @60 fps = 1/2 second
 };
 
 const POCKET_PROPERTIES = {
