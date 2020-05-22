@@ -1,4 +1,10 @@
 const socket = io();
+
+
+socket.on('scoreUpdate', (playerData) => {
+  console.log('scoreUPdate', playerData)
+});
+
 const gameState = {
   balls: [],
   cushions: [],

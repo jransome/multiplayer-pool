@@ -1,8 +1,10 @@
 const { server } = require('./src/server');
+const scoreUpdater = require('./src/scores');
 const Session = require('./src/session');
 const Player = require('./src/player');
 
 server.sockets.on('connect', (newSocket) => {
+  scoreUpdater.register(newSocket);
   let session = null;
 
   newSocket.on('login', async (playerName, allowLogin) => {
@@ -27,12 +29,9 @@ server.sockets.on('connect', (newSocket) => {
   });
 
   newSocket.on('disconnect', () => {
+    scoreUpdater.deregister(newSocket);
     if (session) session.end();
     else console.debug('client disconnected, ID:', newSocket.id);
   });
   console.debug('new client connected, ID:', newSocket.id);
-});
-
-Player.onCollectionUpdated((state) => {
-  server.sockets.to('scoreboard').emit(state.filter(playerDoc => playerDoc.leaderBoardVisible));
 });
