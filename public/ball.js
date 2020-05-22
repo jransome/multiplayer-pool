@@ -49,10 +49,11 @@ class Ball {
       this.reset();
       return;
     }
+    this.colour[3] = 0;
     Body.set(this.body, 'isSensor', true);
     Body.set(this.body, 'isStatic', true);
   }
-  
+
   cancelSink() {
     this.pocket = null;
     this.isSinking = false;
@@ -79,12 +80,15 @@ class Ball {
     }
   }
 
-  _beforeUpdate() { // executes before engine tick
+  _beforeUpdate() {
+    // track sinking
+    if (this.isSinking) this.colour[3] -= 10
     if (this.pocket && this.sinkProgress < BALL_PROPERTIES.SINK_DURATION_FRAMES) {
       const distance = Vector.magnitude(Vector.sub(this.position, this.pocket.position));
       this.isSinking = distance < BALL_PROPERTIES.RADIUS;
       if (this.isSinking) {
-        this.colour[2] -= 5;
+        this.colour[2] -= 5; // reduce brightness
+        this.colour[3] -= 2; // reduce alpha
         this.sinkProgress += 1;
         if (this.sinkProgress >= BALL_PROPERTIES.SINK_DURATION_FRAMES) this.sink();
       }

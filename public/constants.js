@@ -30,10 +30,10 @@ const BALL_PROPERTIES = {
     density: 100,
   },
   COLOUR_MAP: {
-    [CUE]: [0, 0, 90], // All colours are HSV
-    [BLACK]: [0, 0, 10],
-    [RED]: [0, 100, 100],
-    [YELLOW]: [52, 100, 100],
+    [CUE]: [0, 0, 90, 100], // All colours are HSV+A
+    [BLACK]: [0, 0, 10, 100],
+    [RED]: [0, 100, 100, 100],
+    [YELLOW]: [52, 100, 100, 100],
   },
   RADIUS: 15,
   SINK_DURATION_FRAMES: 30 // @60 fps = 1/2 second
