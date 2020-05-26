@@ -40,7 +40,6 @@ class Session {
       `${this.playerInstance.name} (${this.socket.id}) logged out`,
       this.gameInstance ? `after playing game #${this.gameInstance.socketRoomId} (${this.gameInstance.hostPlayer.name}'s game)` : 'without playing a game',
     );
-    console.log(`Players still logged in: ${Session.activeInstances.map(s => s.playerInstance.name).join(', ')} (${Session.activeInstances.length})`);
   }
 }
 

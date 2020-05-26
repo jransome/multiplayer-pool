@@ -21,6 +21,7 @@ admin.initializeApp({
 const db = admin.firestore();
 
 module.exports = {
+  db,
   GameCollection: db.collection('games'),
   PlayerCollection: db.collection('players'),
   helpers: {

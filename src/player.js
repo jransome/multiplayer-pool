@@ -2,7 +2,7 @@ const { PlayerCollection, helpers } = require('./database');
 
 class Player {
   static instances = new Set();
-  static isAlreadyLoggedIn(name){
+  static isAlreadyLoggedIn(name) {
     return [...Player.instances].some(p => p.name === name);
   }
 
@@ -37,16 +37,11 @@ class Player {
     return this.documentReference.path;
   }
 
-  registerStartedGame() {
-    return this.documentReference.update({
+  registerGameResult(winningPlayer, batch) {
+    return batch.update(this.documentReference, {
       gamesStarted: helpers.incrementField(1),
-    }).catch(e => console.error('Error updating db on player start for player', this.name, e));
-  }
-
-  registerGameResult(isWinner) {
-    return this.documentReference.update({
-      [isWinner ? 'gamesWon' : 'gamesLost']: helpers.incrementField(1),
-    }).catch(e => console.error('Error updating db on player game result for player', this.name, e));
+      ...(winningPlayer && { [winningPlayer === this ? 'gamesWon' : 'gamesLost']: helpers.incrementField(1) }),
+    });
   }
 
   logout() {
