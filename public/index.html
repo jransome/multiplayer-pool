@@ -18,10 +18,42 @@
   <script defer src="collision.js"></script>
   <script defer src="scoreboard.js"></script>
   <script defer src="index.js"></script>
+
+  <style>
+    table {
+      font-family: arial, sans-serif;
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    td,
+    th {
+      border: 1px solid #dddddd;
+      text-align: left;
+      padding: 8px;
+      min-width: 120px;
+    }
+
+    tr:nth-child(even) {
+      background-color: #dddddd;
+    }
+
+    #lobbyControls,
+    #gameControls {
+      display: none;
+    }
+
+    #scoreboard {
+      margin-left: 20px;
+    }
+  </style>
 </head>
 
 <body>
-  <div id="game"></div>
+  <div style="display: flex;">
+    <div id="game"></div>
+    <div id="scoreboard"></div>
+  </div>
 
   <h2>Pool From Home!</h2>
   <h3 id="idLabel"></h3>
@@ -33,14 +65,14 @@
     <button id="loginBtn">Go</button>
   </div>
 
-  <div id="lobbyControls" style="display: none;">
+  <div id="lobbyControls">
     <button id="hostBtn">Host game</button>
     <p>===== or join an existing one: =====</p>
     <input id="idInput" type="number" placeholder="enter game Id" />
     <button id="joinBtn">Join game</button>
   </div>
 
-  <div id="gameControls" style="display: none;">
+  <div id="gameControls">
     <p>How to play: Click to set direction of shot, then hit a number to indicate shot power. 9 = smash, 1 = veeery
       light tap</p>
     <p>Press 'r' to reset the cue ball</p>
@@ -50,8 +82,6 @@
       <button id="iWinBtn">YEAH I WON!</button>
     </div>
   </div>
-
-  <div id="scoreboard"></div>
 </body>
 
 </html>

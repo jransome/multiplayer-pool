@@ -48,17 +48,17 @@ class Game {
     player.socket.leave(this.socketRoomId);
     this.playersPresent.delete(player);
     broadcastToRoom(this.socketRoomId, 'playerListingUpdated', [...this.playersPresent].map(p => p.name));
-    if (this.playersPresent.size === 0) this.end(); // TODO: notify guest if host is gone
+    if (this.playersPresent.size === 0) this._end();
   }
 
   claimWin(player) {
     if (this.winner) return;
     this.winner = player;
     console.log(`${player.name} claimed victory for game #${this.socketRoomId} (${this.hostPlayer.name}'s game)`);
-    this.end();
+    this._end();
   }
 
-  async end() {
+  _end() {
     if (this.ended) return;
     this.ended = true;
     const durationSecs = Math.floor((Date.now() - this.startTime) / 1000);
@@ -69,13 +69,13 @@ class Game {
     batch.set(GameCollection.doc(), {
       socketRoomId: this.socketRoomId,
       startTime: this.startTime.toISOString(),
-      hostPlayer: this.hostPlayer.reference,
-      guestPlayer: this.guestPlayer && this.guestPlayer.reference,
-      winner: this.winner && this.winner.reference,
+      hostPlayer: this.hostPlayer.id,
+      guestPlayer: this.guestPlayer && this.guestPlayer.id,
+      winner: this.winner && this.winner.id,
       durationSecs,
     });
 
-    await batch.commit().catch(e => console.error('Error on db batch update:', e));
+    batch.commit().catch(e => console.error('Error on db batch update:', e));
     console.log(`Game #${this.socketRoomId} ended after ${durationSecs} seconds.`);
   }
 }

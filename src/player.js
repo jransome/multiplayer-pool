@@ -26,8 +26,9 @@ class Player {
   }
 
   static onCollectionUpdated(callback) {
-    PlayerCollection.onSnapshot((querySnapshot) => {
-      callback(querySnapshot.docChanges().map(change => change.doc.data()));
+    PlayerCollection.onSnapshot(async () => {
+      const players = await PlayerCollection.get().then(({ docs }) => docs.map(d => d.data()));
+      callback(players);
     });
   }
 
