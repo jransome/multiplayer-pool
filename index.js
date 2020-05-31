@@ -9,6 +9,7 @@ const onSocketConnect = (newSocket) => {
     if (Player.isAlreadyLoggedIn(playerName)) {
       console.log(`${playerName} (${newSocket.id}) attempted to login but was already logged in`)
       allowLogin(false);
+      return;
     }
     
     allowLogin(true);
