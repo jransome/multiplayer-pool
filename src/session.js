@@ -1,23 +1,28 @@
 const Game = require('./game');
 
 class Session {
-  static activeInstances = [];
-
   constructor(playerInstance, socket) {
     this.socket = socket;
     this.playerInstance = playerInstance;
     this.gameInstance = null;
-    Session.activeInstances.push(this);
+
+    this.socket.on('hosting', (ack) => {
+      this._hostGame(ack);
+    });
+
+    this.socket.on('joinAttempt', (gameId, ack) => {
+      this._joinGame(gameId, ack);
+    });
   }
 
-  hostGame(ack) {
+  _hostGame(ack) {
     this.gameInstance = new Game(this.playerInstance);
     ack(this.gameInstance.socketRoomId);
 
     console.log(`${this.playerInstance.name} (${this.socket.id}) hosted game #${this.gameInstance.socketRoomId}`);
   }
 
-  joinGame(gameId, ack) {
+  _joinGame(gameId, ack) {
     const game = Game.instances[gameId];
     if (!game || game.ended) {
       console.log(this.playerInstance.name, 'attempted to join game #', gameId, 'but failed:', { exists: !!game, ended: game && game.ended });
@@ -34,7 +39,6 @@ class Session {
   end() {
     if (this.gameInstance) this.gameInstance.leave(this.playerInstance);
     this.playerInstance.logout();
-    Session.activeInstances.splice(Session.activeInstances.indexOf(this), 1);
 
     console.log(
       `${this.playerInstance.name} (${this.socket.id}) logged out`,

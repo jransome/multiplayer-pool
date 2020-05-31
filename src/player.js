@@ -58,7 +58,6 @@ class Player {
     }).catch(e => console.error('Error updating db on player logout for player', this.name, e));
 
     Player.instances.delete(this);
-    console.log(`${this.name} logged out. Players still logged in: ${[...Player.instances].map(p => p.name).join(', ')} (${Player.instances.size})`);
   }
 }
 
