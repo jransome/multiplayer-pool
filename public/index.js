@@ -1,4 +1,5 @@
 const socket = io();
+
 const gameState = {
   balls: [],
   cushions: [],
@@ -58,4 +59,5 @@ const hostGame = () => {
 }
 
 registerInputListeners(socket);
+initialiseScoreBoard(socket);
 const lobby = initialiseLobby(socket, hostGame);

@@ -25,6 +25,13 @@ class Player {
     }).catch(e => console.error('Error creating new player', name, e)), name, socket);
   }
 
+  static onCollectionUpdated(callback) {
+    PlayerCollection.onSnapshot(async () => {
+      const players = await PlayerCollection.get().then(({ docs }) => docs.map(d => d.data()));
+      callback(players);
+    });
+  }
+
   constructor(documentReference, name, socket) {
     this.documentReference = documentReference;
     this.name = name;
@@ -33,8 +40,8 @@ class Player {
     Player.instances.add(this);
   }
 
-  get reference() {
-    return this.documentReference.path;
+  get id() {
+    return this.documentReference.id;
   }
 
   registerGameResult(winningPlayer, batch) {
@@ -51,7 +58,6 @@ class Player {
     }).catch(e => console.error('Error updating db on player logout for player', this.name, e));
 
     Player.instances.delete(this);
-    console.log(`${this.name} logged out. Players still logged in: ${[...Player.instances].map(p => p.name).join(', ')} (${Player.instances.size})`);
   }
 }
 
