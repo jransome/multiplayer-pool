@@ -1,3 +1,14 @@
+const io = require('socket.io-client');
+const constants = require('constants');
+const lobby = require('lobby');
+const input = require('input');
+const ball = require('ball');
+const pocket = require('pocket');
+const game = require('game');
+const collision = require('collision');
+const scoreboard = require('scoreboard');
+
+
 const socket = io();
 
 const gameState = {
