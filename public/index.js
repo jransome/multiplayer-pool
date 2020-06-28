@@ -1,74 +1,78 @@
+/* eslint-disable no-param-reassign */
 const io = require('socket.io-client');
-const constants = require('constants');
-const lobby = require('lobby');
-const input = require('input');
-const ball = require('ball');
-const pocket = require('pocket');
-const game = require('game');
-const collision = require('collision');
-const scoreboard = require('scoreboard');
+const P5 = require('p5');
+const { TABLE_LENGTH, TABLE_WIDTH } = require('./constants');
+const { initialiseLobby } = require('./lobby');
+const { registerInputListeners } = require('./input');
+const { initialiseScoreBoard } = require('./scoreboard');
+const Ball = require('./Ball');
+const Pocket = require('./Pocket');
+const Game = require('./Game');
 
+// TODO: RENAME FILE TO RENDER or something
+const p5Instance = new P5((sketch) => {
+  const socket = io();
 
-const socket = io();
-
-const gameState = {
-  balls: [],
-  cushions: [],
-  targetVector: null,
-};
-
-// RENDER STUFF
-socket.on('gameStateUpdated', (newState) => {
-  gameState.balls = newState.balls;
-  gameState.cushions = newState.cushions;
-  gameState.targetVector = newState.targetVector;
-});
-
-const renderCushion = (vertices) => {
-  fill(0, 0, 60);
-  stroke(0, 0, 60);
-  strokeWeight(1);
-  beginShape();
-  vertices.forEach(v => vertex(v.x, v.y));
-  endShape(CLOSE);
-}
-
-const renderTargetingLine = (cuePosition, directionVector) => {
-  stroke('white');
-  strokeWeight(2);
-  const endPoint = {
-    x: cuePosition.x + directionVector.x * 1200,
-    y: cuePosition.y + directionVector.y * 1200,
+  const gameState = {
+    balls: [],
+    cushions: [],
+    targetVector: null,
   };
-  line(cuePosition.x, cuePosition.y, endPoint.x, endPoint.y);
-}
 
-function setup() {
-  canvasElement = createCanvas(TABLE_LENGTH, TABLE_WIDTH).id('canvas').parent('game');
-  colorMode(HSB);
-}
+  // RENDER STUFF
+  socket.on('gameStateUpdated', (newState) => {
+    gameState.balls = newState.balls;
+    gameState.cushions = newState.cushions;
+    gameState.targetVector = newState.targetVector;
+  });
 
-function draw() {
-  background(233, 85, 78);
-  const { targetVector, balls, cushions } = gameState;
-  if (targetVector) renderTargetingLine(balls[0].position, targetVector);
-  Pocket.renderAll();
-  cushions.forEach(c => renderCushion(c.vertices));
-  balls.forEach(b => Ball.render(b));
-}
+  const renderCushion = (vertices) => {
+    sketch.fill(0, 0, 60);
+    sketch.stroke(0, 0, 60);
+    sketch.strokeWeight(1);
+    sketch.beginShape();
+    vertices.forEach((v) => sketch.vertex(v.x, v.y));
+    sketch.endShape(sketch.CLOSE);
+  };
 
-let hostedGame = null;
+  const renderTargetingLine = (cuePosition, directionVector) => {
+    sketch.stroke('white');
+    sketch.strokeWeight(2);
+    const endPoint = {
+      x: cuePosition.x + directionVector.x * 1200,
+      y: cuePosition.y + directionVector.y * 1200,
+    };
+    sketch.line(cuePosition.x, cuePosition.y, endPoint.x, endPoint.y);
+  };
 
-const hostGame = () => {
-  if (hostedGame) {
-    hostedGame.reset();
-    return
-  }
-  hostedGame = new Game(socket);
-  hostedGame.start();
-  window.game = hostedGame; // for debug
-}
+  sketch.setup = () => {
+    console.log(TABLE_LENGTH, TABLE_WIDTH, 'AHHHHHHH')
+    sketch.createCanvas(TABLE_LENGTH, TABLE_WIDTH).id('canvas').parent('game');
+    sketch.colorMode(sketch.HSB);
+  };
 
-registerInputListeners(socket);
-initialiseScoreBoard(socket);
-const lobby = initialiseLobby(socket, hostGame);
+  sketch.draw = () => {
+    sketch.background(233, 85, 78);
+    const { targetVector, balls, cushions } = gameState;
+    if (targetVector) renderTargetingLine(balls[0].position, targetVector);
+    Pocket.renderAll(sketch);
+    cushions.forEach((c) => renderCushion(c.vertices));
+    balls.forEach((b) => Ball.render(sketch, b));
+  };
+
+  let hostedGame = null;
+
+  const hostGame = () => {
+    if (hostedGame) {
+      hostedGame.reset();
+      return;
+    }
+    hostedGame = new Game(socket);
+    hostedGame.start();
+    window.game = hostedGame; // for debug
+  };
+
+  registerInputListeners(socket, window);
+  initialiseScoreBoard(socket, document);
+  initialiseLobby(socket, document, hostGame);
+});

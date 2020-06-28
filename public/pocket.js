@@ -1,3 +1,7 @@
+const { Events, World, Bodies, Vector } = require('matter-js');
+const { POCKET_PROPERTIES } = require('./constants');
+const Ball = require('./Ball');
+
 class Pocket {
   static instances = {};
 
@@ -10,18 +14,18 @@ class Pocket {
     Events.on(engine, 'beforeUpdate', this._beforeUpdate.bind(this));
   }
 
-  static renderAll() {
-    POCKET_PROPERTIES.POSITIONS.forEach(pos => {
-      fill(POCKET_PROPERTIES.COLOUR);
-      stroke(POCKET_PROPERTIES.COLOUR);
-      strokeWeight(2);
-      circle(pos.x, pos.y, POCKET_PROPERTIES.VISIBLE_RADIUS * 2);
+  static renderAll(sketch) {
+    POCKET_PROPERTIES.POSITIONS.forEach((pos) => {
+      sketch.fill(POCKET_PROPERTIES.COLOUR);
+      sketch.stroke(POCKET_PROPERTIES.COLOUR);
+      sketch.strokeWeight(2);
+      sketch.circle(pos.x, pos.y, POCKET_PROPERTIES.VISIBLE_RADIUS * 2);
 
-      // debug colliders
-      // fill(30, 100, 100);
-      // stroke(30, 100, 100);
-      // strokeWeight(1);
-      // circle(pos.x, pos.y, POCKET_PROPERTIES.COLLISION_RADIUS * 2);
+      // for debugging colliders
+      // sketch.fill(30, 100, 100);
+      // sketch.stroke(30, 100, 100);
+      // sketch.strokeWeight(1);
+      // sketch.circle(pos.x, pos.y, POCKET_PROPERTIES.COLLISION_RADIUS * 2);
     });
   }
 
@@ -54,3 +58,5 @@ class Pocket {
     });
   }
 }
+
+module.exports = Pocket;

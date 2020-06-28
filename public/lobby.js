@@ -1,4 +1,6 @@
-function initialiseLobby(socket, hostGame) {
+const DOMPurify = require('dompurify');
+
+const initialiseLobby = (socket, document, hostGame) => {
   const nameControls = document.querySelector('#nameControls');
   const nameInput = document.querySelector('#nameInput');
   const playerNameListing = document.querySelector('#playerNameListing');
@@ -38,26 +40,26 @@ function initialiseLobby(socket, hostGame) {
     if (!nameInput.value || nameInput.value.length < 3) return;
     playerName = DOMPurify.sanitize(nameInput.value);
     socket.emit('login', playerName, (isSuccessful) => {
-      if(!isSuccessful){
+      if (!isSuccessful) {
         loginMsg.textContent = `${playerName} is already logged in!`;
         return;
       }
-      
+
       loginMsg.textContent = `Welcome ${playerName}`;
       nameControls.style.display = 'none';
       lobbyControls.style.display = 'initial';
     });
-  }
+  };
   loginButton.addEventListener('click', login);
   nameInput.addEventListener('keyup', (event) => {
-    loginButton.style.display = !!nameInput.value ? 'initial' : 'none';
+    loginButton.style.display = nameInput.value ? 'initial' : 'none';
     if (event.key === 'Enter') login();
   });
 
   const onStartGame = () => {
     lobbyControls.style.display = 'none';
     gameControls.style.display = 'initial';
-  }
+  };
 
   hostButton.addEventListener('click', () => {
     socket.emit('hosting', (gameId) => {
@@ -81,10 +83,14 @@ function initialiseLobby(socket, hostGame) {
         onStartGame();
       }
     });
-  }
+  };
 
   joinButton.addEventListener('click', joinGame);
   idInput.addEventListener('keyup', (event) => {
     if (event.key === 'Enter') joinGame();
   });
-}
+};
+
+module.exports = {
+  initialiseLobby,
+};

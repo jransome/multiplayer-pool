@@ -1,4 +1,4 @@
-function initialiseScoreBoard(socket) {
+const initialiseScoreBoard = (socket, document) => {
   const scoreboardDiv = document.querySelector('#scoreboard');
 
   const constructRow = (player) => `
@@ -23,11 +23,15 @@ function initialiseScoreBoard(socket) {
   socket.on('scoreUpdate', (playerData) => {
     console.log('scores updated', playerData);
     if (playerData && playerData.length) {
-      const rankedData = playerData.map(p => ({
+      const rankedData = playerData.map((p) => ({
         ...p,
         netScore: p.gamesWon - p.gamesLost,
       })).sort((a, b) => b.netScore - a.netScore);
       scoreboardDiv.innerHTML = constructTable(rankedData);
     }
   });
-}
+};
+
+module.exports = {
+  initialiseScoreBoard,
+};
