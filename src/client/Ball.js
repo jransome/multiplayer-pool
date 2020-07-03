@@ -1,3 +1,6 @@
+const { Events, World, Body, Bodies, Vector } = require('matter-js');
+const { BALL_PROPERTIES, BALL_TYPES } = require('./constants');
+
 class Ball {
   static instances = {};
 
@@ -15,12 +18,12 @@ class Ball {
     Ball.instances[this.id] = this;
   }
 
-  static render(ballState) {
+  static render(sketch, ballState) {
     const { position, colour } = ballState;
-    fill(colour);
-    stroke(colour);
-    strokeWeight(1);
-    circle(position.x, position.y, BALL_PROPERTIES.RADIUS * 2);
+    sketch.fill(colour);
+    sketch.stroke(colour);
+    sketch.strokeWeight(1);
+    sketch.circle(position.x, position.y, BALL_PROPERTIES.RADIUS * 2);
   }
 
   get position() {
@@ -45,7 +48,7 @@ class Ball {
 
   sink() {
     if (!this.isSinking) return;
-    if (this.type === CUE) {
+    if (this.type === BALL_TYPES.CUE) {
       this.reset();
       return;
     }
@@ -77,12 +80,12 @@ class Ball {
     return {
       colour: this.colour,
       position: this.body.position,
-    }
+    };
   }
 
   _beforeUpdate() {
     // track sinking
-    if (this.isSinking) this.colour[3] -= 10
+    if (this.isSinking) this.colour[3] -= 10;
     if (this.pocket && this.sinkProgress < BALL_PROPERTIES.SINK_DURATION_FRAMES) {
       const distance = Vector.magnitude(Vector.sub(this.position, this.pocket.position));
       this.isSinking = distance < BALL_PROPERTIES.RADIUS;
@@ -113,30 +116,4 @@ class Ball {
   }
 }
 
-const createRack = (anchorPoint, engine) => {
-  const { x, y } = anchorPoint;
-  const rowDistance = BALL_PROPERTIES.RADIUS * 2 * 0.85;
-
-  // TODO add tiny randomness to ball positions
-  return [
-    new Ball(engine, YELLOW, anchorPoint),
-
-    new Ball(engine, RED, { x: x + rowDistance, y: y - BALL_PROPERTIES.RADIUS }),
-    new Ball(engine, RED, { x: x + rowDistance, y: y + BALL_PROPERTIES.RADIUS }),
-
-    new Ball(engine, YELLOW, { x: x + rowDistance * 2, y: y - BALL_PROPERTIES.RADIUS * 2 }),
-    new Ball(engine, BLACK, { x: x + rowDistance * 2, y }),
-    new Ball(engine, YELLOW, { x: x + rowDistance * 2, y: y + BALL_PROPERTIES.RADIUS * 2 }),
-
-    new Ball(engine, RED, { x: x + rowDistance * 3, y: y - BALL_PROPERTIES.RADIUS * 3 }),
-    new Ball(engine, YELLOW, { x: x + rowDistance * 3, y: y - BALL_PROPERTIES.RADIUS }),
-    new Ball(engine, RED, { x: x + rowDistance * 3, y: y + BALL_PROPERTIES.RADIUS }),
-    new Ball(engine, RED, { x: x + rowDistance * 3, y: y + BALL_PROPERTIES.RADIUS * 3 }),
-
-    new Ball(engine, YELLOW, { x: x + rowDistance * 4, y: y - BALL_PROPERTIES.RADIUS * 4 }),
-    new Ball(engine, YELLOW, { x: x + rowDistance * 4, y: y - BALL_PROPERTIES.RADIUS * 2 }),
-    new Ball(engine, RED, { x: x + rowDistance * 4, y }),
-    new Ball(engine, YELLOW, { x: x + rowDistance * 4, y: y + BALL_PROPERTIES.RADIUS * 2 }),
-    new Ball(engine, RED, { x: x + rowDistance * 4, y: y + BALL_PROPERTIES.RADIUS * 4 }),
-  ];
-}
+module.exports = Ball;

@@ -5,7 +5,7 @@ const socket = require('socket.io');
 const PORT = process.env.PORT || 3001;
 const app = express();
 
-app.use(express.static(path.join(__dirname, '../public')));
+app.use(express.static(path.join(__dirname, '../dist')));
 
 const expressServer = app.listen(PORT, () => console.log('Server running'));
 const socketServer = socket(expressServer);
