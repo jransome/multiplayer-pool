@@ -4,13 +4,21 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node .",
+    "start": "npm run build && node .",
     "start:dev": "nodemon -r dotenv/config .",
     "build": "parcel build public/index.html",
     "db:purge": "node -r dotenv/config scripts/purgeDb"
   },
-  "author": "",
+  "author": "James Ransome",
   "license": "ISC",
+  "nodemonConfig": {
+    "ignore": [
+      "dist/*"
+    ],
+    "events": {
+      "restart": "npm run build"
+    }
+  },
   "dependencies": {
     "dompurify": "^2.0.12",
     "express": "^4.17.1",
