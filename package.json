@@ -6,7 +6,7 @@
   "scripts": {
     "start": "npm run build && node .",
     "start:dev": "nodemon -r dotenv/config .",
-    "build": "parcel build public/index.html",
+    "build": "parcel build src/client/index.html",
     "db:purge": "node -r dotenv/config scripts/purgeDb"
   },
   "author": "James Ransome",
