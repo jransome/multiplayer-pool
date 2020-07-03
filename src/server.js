@@ -13,4 +13,4 @@ const socketServer = socket(expressServer);
 module.exports = {
   server: socketServer,
   broadcastToRoom: (room, eventName, data) => socketServer.to(room).emit(eventName, data),
-}
+};

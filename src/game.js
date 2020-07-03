@@ -3,6 +3,7 @@ const { broadcastToRoom } = require('./server');
 
 class Game {
   static instances = {};
+
   static instanceCounter = 0;
 
   constructor(hostPlayer) {

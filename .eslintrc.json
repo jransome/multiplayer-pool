@@ -15,6 +15,14 @@
   "rules": {
     "no-underscore-dangle": "off",
     "object-curly-newline": "off",
+    "no-plusplus": "off",
+    "arrow-parens": [
+      2,
+      "as-needed",
+      {
+        "requireForBlockBody": true
+      }
+    ],
     "max-len": [
       "error",
       {

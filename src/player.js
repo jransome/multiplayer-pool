@@ -2,6 +2,7 @@ const { PlayerCollection, helpers } = require('./database');
 
 class Player {
   static instances = new Set();
+
   static isAlreadyLoggedIn(name) {
     return [...Player.instances].some(p => p.name === name);
   }

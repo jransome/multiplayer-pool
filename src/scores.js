@@ -1,7 +1,7 @@
 const { broadcastToRoom } = require('./server');
 const Player = require('./player');
 
-const SCOREBOARD_ROOM_ID = 'scoreboard'
+const SCOREBOARD_ROOM_ID = 'scoreboard';
 let playerCollectionState = [];
 
 Player.onCollectionUpdated((state) => {
@@ -12,11 +12,11 @@ Player.onCollectionUpdated((state) => {
 const register = (socket) => {
   socket.join(SCOREBOARD_ROOM_ID);
   if (playerCollectionState.length) socket.emit('scoreUpdate', playerCollectionState);
-}
+};
 
-const deregister = (socket) => socket.leave(SCOREBOARD_ROOM_ID);
+const deregister = socket => socket.leave(SCOREBOARD_ROOM_ID);
 
 module.exports = {
   register,
   deregister,
-}
+};

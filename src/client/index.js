@@ -31,7 +31,7 @@ const p5Instance = new P5((sketch) => {
     sketch.stroke(0, 0, 60);
     sketch.strokeWeight(1);
     sketch.beginShape();
-    vertices.forEach((v) => sketch.vertex(v.x, v.y));
+    vertices.forEach(v => sketch.vertex(v.x, v.y));
     sketch.endShape(sketch.CLOSE);
   };
 
@@ -46,7 +46,7 @@ const p5Instance = new P5((sketch) => {
   };
 
   sketch.setup = () => {
-    console.log(TABLE_LENGTH, TABLE_WIDTH, 'AHHHHHHH')
+    console.log(TABLE_LENGTH, TABLE_WIDTH, 'AHHHHHHH');
     sketch.createCanvas(TABLE_LENGTH, TABLE_WIDTH).id('canvas').parent('game');
     sketch.colorMode(sketch.HSB);
   };
@@ -56,8 +56,8 @@ const p5Instance = new P5((sketch) => {
     const { targetVector, balls, cushions } = gameState;
     if (targetVector) renderTargetingLine(balls[0].position, targetVector);
     Pocket.renderAll(sketch);
-    cushions.forEach((c) => renderCushion(c.vertices));
-    balls.forEach((b) => Ball.render(sketch, b));
+    cushions.forEach(c => renderCushion(c.vertices));
+    balls.forEach(b => Ball.render(sketch, b));
   };
 
   let hostedGame = null;

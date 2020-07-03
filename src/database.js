@@ -11,7 +11,7 @@ const serviceAccount = {
   token_uri: process.env.DB_TOKEN_URI,
   auth_provider_x509_cert_url: process.env.DB_AUTH_PROVIDER_URL,
   client_x509_cert_url: process.env.DB_CLIENT_CERT_URL,
-}
+};
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
@@ -25,6 +25,6 @@ module.exports = {
   GameCollection: db.collection('games'),
   PlayerCollection: db.collection('players'),
   helpers: {
-    incrementField: (amount) => admin.firestore.FieldValue.increment(amount),
+    incrementField: amount => admin.firestore.FieldValue.increment(amount),
   },
 };

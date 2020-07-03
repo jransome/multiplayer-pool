@@ -24,7 +24,7 @@ server.sockets.on('connect', (newSocket) => {
     scoreUpdater.deregister(newSocket);
     if (session) session.end();
     console.log('client disconnected, ID:', newSocket.id);
-    console.log(`${Player.instances.size} player(s) still logged in${Player.instances.size ?': ' + [...Player.instances].map(p => p.name).join(', ') : ''}`);
+    console.log(`${Player.instances.size} player(s) still logged in${Player.instances.size ? `: ${[...Player.instances].map(p => p.name).join(', ')}` : ''}`);
   });
   console.log('new client connected, ID:', newSocket.id);
 });
