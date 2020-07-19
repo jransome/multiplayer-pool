@@ -3,6 +3,7 @@ import socket from '../socket';
 import Game from '../Game';
 import GameView from './GameView';
 import Lobby from './Lobby';
+import Scoreboard from './Scoreboard';
 
 const hostGame = () => {
   const hostedGame = new Game(socket);
@@ -10,11 +11,12 @@ const hostGame = () => {
   window.game = hostedGame; // for debug
 };
 
-// initialiseScoreBoard(socket, document);
-
 const App = () => (
   <div>
-    <GameView />
+    <div style={{ display: 'flex' }}>
+      <GameView />
+      <Scoreboard />
+    </div>
     <Lobby hostGame={hostGame} />
   </div>
 );
