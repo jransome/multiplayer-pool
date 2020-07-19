@@ -74,7 +74,7 @@ class Game {
     this.engine = Engine.create({ constraintIterations: 4, velocityIterations: 8, positionIterations: 12 }); // increase simulation quality
     this.engine.world.gravity = { x: 0, y: 0 };
     initCollisionManager(this.engine);
-    this.pockets = POCKET_PROPERTIES.POSITIONS.map((pos) => new Pocket(this.engine, pos));
+    this.pockets = POCKET_PROPERTIES.POSITIONS.map(pos => new Pocket(this.engine, pos));
     this.balls = [
       new Ball(this.engine, CUE, { x: TABLE_LENGTH * 0.2, y: TABLE_WIDTH / 2 }),
       ...createRack({ x: TABLE_LENGTH * 0.7, y: TABLE_WIDTH / 2 }, this.engine),
@@ -91,7 +91,7 @@ class Game {
   }
 
   reset() {
-    this.balls.forEach((b) => b.reset());
+    this.balls.forEach(b => b.reset());
   }
 
   _setTargetDirection(targetPosition) {
@@ -110,8 +110,8 @@ class Game {
   _broadcastGameState() {
     const gameState = {
       targetVector: this.targetVector,
-      balls: this.balls.map((b) => b.getState()),
-      cushions: cushions.map((c) => ({ // TODO do once on handshake
+      balls: this.balls.map(b => b.getState()),
+      cushions: cushions.map(c => ({ // TODO do once on handshake
         vertices: c.vertices.map(({ x, y }) => ({ x, y })),
       })),
     };

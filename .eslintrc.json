@@ -7,12 +7,21 @@
     "node": true
   },
   "extends": [
-    "airbnb-base"
+    "plugin:react/recommended",
+    "airbnb"
   ],
   "parserOptions": {
+    "ecmaFeatures": {
+      "jsx": true
+    },
     "ecmaVersion": 11
   },
+  "plugins": [
+    "react"
+  ],
   "rules": {
+    "react/jsx-filename-extension": "off",
+    "react/destructuring-assignment": "off",
     "no-underscore-dangle": "off",
     "object-curly-newline": "off",
     "no-plusplus": "off",

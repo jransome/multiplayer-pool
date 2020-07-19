@@ -18,14 +18,6 @@ class Ball {
     Ball.instances[this.id] = this;
   }
 
-  static render(sketch, ballState) {
-    const { position, colour } = ballState;
-    sketch.fill(colour);
-    sketch.stroke(colour);
-    sketch.strokeWeight(1);
-    sketch.circle(position.x, position.y, BALL_PROPERTIES.RADIUS * 2);
-  }
-
   get position() {
     return this.body.position;
   }
@@ -35,11 +27,11 @@ class Ball {
   }
 
   onCollisionStart(otherBody) {
-    // implement some rule logic
+    // TODO: implement some rule logic
   }
 
   onCollisionEnd(otherBody) {
-    // implement some rule logic
+    // TODO: implement some rule logic
   }
 
   capture(pocket) {

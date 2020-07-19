@@ -14,21 +14,6 @@ class Pocket {
     Events.on(engine, 'beforeUpdate', this._beforeUpdate.bind(this));
   }
 
-  static renderAll(sketch) {
-    POCKET_PROPERTIES.POSITIONS.forEach((pos) => {
-      sketch.fill(POCKET_PROPERTIES.COLOUR);
-      sketch.stroke(POCKET_PROPERTIES.COLOUR);
-      sketch.strokeWeight(2);
-      sketch.circle(pos.x, pos.y, POCKET_PROPERTIES.VISIBLE_RADIUS * 2);
-
-      // for debugging colliders
-      // sketch.fill(30, 100, 100);
-      // sketch.stroke(30, 100, 100);
-      // sketch.strokeWeight(1);
-      // sketch.circle(pos.x, pos.y, POCKET_PROPERTIES.COLLISION_RADIUS * 2);
-    });
-  }
-
   get position() {
     return this.body.position;
   }
