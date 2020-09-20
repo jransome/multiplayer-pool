@@ -4,6 +4,7 @@ import Game from '../Game';
 import GameView from './GameView';
 import Lobby from './Lobby';
 import Scoreboard from './Scoreboard';
+import Songs from './Songs';
 
 const hostGame = () => {
   const hostedGame = new Game(socket);
@@ -18,6 +19,8 @@ const App = () => (
       <Scoreboard />
     </div>
     <Lobby hostGame={hostGame} />
+    <br />
+    <Songs />
   </div>
 );
 
