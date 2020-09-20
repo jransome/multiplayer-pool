@@ -18,9 +18,11 @@ const App = () => (
       <GameView />
       <Scoreboard />
     </div>
-    <Lobby hostGame={hostGame} />
-    <br />
-    <Songs />
+
+    <div style={{ display: 'flex' }}>
+      <Lobby hostGame={hostGame} />
+      <Songs />
+    </div>
   </div>
 );
 

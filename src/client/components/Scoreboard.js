@@ -19,7 +19,7 @@ const Scoreboard = () => {
   });
 
   const row = player => (
-    <tr>
+    <tr key={player.name}>
       <td>{player.name}</td>
       <td>{player.gamesWon}</td>
       <td>{player.gamesLost}</td>
