@@ -7,11 +7,11 @@ const Songs = () => (
   <div style={{ marginLeft: '420px', marginTop: '20px' }}>
     <strong>Play some music!</strong>
     <br />
-    <audio controls src={niceSong} />
+    <audio controls src={irishSong} />
     <br />
     <audio controls src={tropicalSong} />
     <br />
-    <audio controls src={irishSong} />
+    <audio controls src={niceSong} />
   </div>
 );
 
